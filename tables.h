@@ -2,23 +2,51 @@
 #include <cstring>
 
 using namespace std;
-extern int yyerror(const char *);
+
 struct symbol
 {
-    char* type; //variable, constanta, vector
-    char* var_type; //int, float, char, etc
+    char* type; //int, char, etc
+    char* var_type; // variable, constant, class
     char* name; //name of the variable
     char* value; //value of the variable
     //char* scope;
-}symbol_table[10000];
+}symbol_table[1000];
+struct parameter_struct
+{
+    char* type;
+    char* type_info;
+};
+struct function_symbol
+{
+    char* name;
+    char* var_type;
+    char * parameters;
+    char * type_parameters;
+    char * function_scope;
+};function_table[20];
 
+struct class_symbol
+{
+    char * class_name;
+    char * type;
+    int index;
+};class_table[100];
+int nr_symbols = 0;
 
-/// to do function logic
-struct function_symbols{
-    //to do
+void printFunctionTable() {
+    printf("\nFUNCTION TABLE:\n");
+    printf("NAME            VAR_TYPE        PARAMETER       FUNCTION_SCOPE\n");
+    printf("______________________________________________________________\n");
+
+    for (int i = 0; i < fcount; i++) {
+        printf("%-15s\t%-15s\t%-15s\t%-15s\n",
+               function_table[i].name,
+               function_table[i].var_type,
+               function_table[i].parameters,
+               function_table[i].function_scope);
+    }
 }
 
-int nr_symbols = 0;
 
 char* lastType = NULL; 
 
@@ -29,7 +57,7 @@ void updateLastType(char* newType)
     }
     // Allocate memory for the new type and copy it
     lastType = (char*)malloc(strlen(newType) + 1);
-    strcpy(lastType, newType);
+    lastType = strdup(newType);
 }
 
 int search(char *name)
@@ -42,41 +70,15 @@ int search(char *name)
 
 void modifyVarValue(int pos, char* newValue)
 {
-    if(symbol_table[pos].value == NULL)
-        symbol_table[pos].value = (char*)malloc(sizeof(newValue));
     strcpy(symbol_table[pos].value,newValue);
 }
 
-
-char* vectorVarName(char* name, int index)
-{
-    char* res = strdup(name);
-    char* i = (char*)malloc(strlen(name) + 10);
-    if (i == NULL) {
-        return NULL;
-    }
-
-    snprintf(i, 10, "[%d]", index);
-    strcat(res, i);
-    return res;
-}
-
-int ExistsVectorVarName(char* name, char* index)
-{
-    char *res = strdup(name);
-    strcat(res,"[");
-    strcat(res,index);
-    strcat(res,"]");
-    return search(res);
-}
-
-int addSymbol(const char *type, char* name, char* value, const char* var_type)
+void addSymbol(char *type, char* name, char* value, char* var_type)
 {
    
     int isHereAlready = search(name);
     if(isHereAlready == -1)
     {
-        
         if(strcmp(type, "Variable") == 0)
         {
 
@@ -95,30 +97,9 @@ int addSymbol(const char *type, char* name, char* value, const char* var_type)
             symbol_table[nr_symbols].name = strdup(name);
             nr_symbols++;
         }
-        else if(strcmp(type,"Vector") == 0)
-        {
-            symbol_table[nr_symbols].name = strdup(name);
-            symbol_table[nr_symbols].type = strdup(type);
-            symbol_table[nr_symbols].var_type = strdup(var_type);
-            symbol_table[nr_symbols].value = strdup(value);
-            int n = atoi(value);
-            nr_symbols++;
-            for(int i = 0; i<n; i++)
-            {
-                addSymbol("Variable",vectorVarName(name, i),NULL, var_type);    
-            }
-        }
     }
-    else
-    {
-        if(strcmp(type, "Constant"))
-            yyerror("Error! Redeclaration of variable");
-        return -1;
-    }
-    return 0;
+    
 }
-
-
 
 void printOneSymbol(symbol s)
 {
