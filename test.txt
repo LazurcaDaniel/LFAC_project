@@ -1,4 +1,3 @@
 {
-    float x
-    float y = x
+    int x
 }

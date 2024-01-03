@@ -2,7 +2,7 @@
 #include <iostream>
 #include "tables.h"
 extern int yylex();
-void yyerror(const char* s);
+int yyerror(const char* s);
 extern FILE* yyin; 
 extern int line_nr;
 using namespace std;
@@ -37,37 +37,15 @@ body:instr body
     |instr
     ;
 
-instr:type ID_VAL {int s = search(strdup($2)); if(s == -1) { //int x
-    addSymbol("Variable", strdup($2), NULL, strdup($1));
-    }
-        else
-        {
-            yyerror("Error! Redeclaration of variable!");
-            return -1;
-        }
-    }
-    |type ID_VAL ASSIGN value {int s = search(strdup($2)); if(s==-1){ ///int x = 5
-        int v = search(strdup($4)); if(strcmp(symbol_table[v].var_type, lastType)!=0)
+instr:type ID_VAL { addSymbol("Variable", strdup($2), NULL, strdup($1)); } //int x
+    |type ID_VAL ASSIGN value { //int x = 5
+        int v = search(strdup($4)); 
+        if(strcmp(symbol_table[v].var_type, lastType)!=0)
         {
             yyerror("Error! Wrong conversion type.");
             return -1;
         }
-        else
-        {
-            if(s==-1)
-                {
-                    addSymbol("Variable", strdup($2), strdup($4), strdup($1));
-                }
-            else{
-            modifyVarValue(s,symbol_table[v].value);
-            }
-        }
-    }
-        else
-        {
-            yyerror("Error! Redeclaration of variable!");
-            return -1;
-        }
+        addSymbol("Variable", strdup($2), strdup($4), strdup($1));
     }
     |ID_VAL ASSIGN value {int s = search(strdup($1)); if(s == -1) //x = 5
     {
@@ -92,29 +70,18 @@ instr:type ID_VAL {int s = search(strdup($2)); if(s == -1) { //int x
         yyerror("Error! Undeclared variable!");
         return -1;
     }
-    else
-    {
         if(symbol_table[s].value == NULL)
         {
             yyerror("Error! Value uninitialised!");
-            return 
+            return -1;
         }
         if(strcmp(lastType,symbol_table[s].var_type)!=0)
         {
             yyerror("Error! Wrong conversion type.");
             return -1;
         }
-        int v = search(strdup($2));
-        if(v == -1)
-        {
-            addSymbol("Variable",strdup($2),symbol_table[s].value,strdup($1));
-        }
-        else
-        {
-            modifyVarValue(v,symbol_table[s].value);
-        }
+        addSymbol("Variable",strdup($2),symbol_table[s].value,strdup($1));
     }    
-    }
     |ID_VAL ASSIGN ID_VAL {
         int s = search(strdup($3)); if(s == -1) // x = y
     {
@@ -133,16 +100,33 @@ instr:type ID_VAL {int s = search(strdup($2)); if(s == -1) { //int x
             yyerror("Error! Wrong conversion type.");
             return -1;
         }
+        if(symbol_table[s].value == NULL)
+        {
+            yyerror("Error! Value uninitialised!");
+            return -1;
+        }
         modifyVarValue(v,symbol_table[s].value);
     }
     }
     |type ID_VAL '[' value ']' //int x[100]
     {
-        int s = search(strdup($2)); if(s!= -1)
+        addSymbol("Vector", strdup($2),strdup($4),strdup($1));
+    }
+    |ID_VAL '[' value ']' ASSIGN value
+    {
+        int s = ExistsVectorVarName(strdup($1),strdup($3));
+        if(s == -1)
         {
-            yyerror("Error! Redeclaration of variable!");
+            yyerror("Error! Uninitialised value!");
             return -1;
         }
+        int v = search(strdup($6));
+        if(strcmp(symbol_table[v].var_type,symbol_table[s].var_type))
+        {
+            yyerror("Error! Wrong conversion type!");
+            return -1;
+        }
+        modifyVarValue(s,symbol_table[v].value);
     }
     ;
 
@@ -160,8 +144,9 @@ value:INT_VAL {addSymbol("Constant", strdup($1), strdup($1), "int"); $$ = $1;}
     ;
     
 %%
-void yyerror(const char* s){
+int yyerror(const char* s){
     printf("Line %d: Error! %s\n",line_nr+1, s);
+    return -1;
 }
 
 int main(int argc, char* argv[]) {
