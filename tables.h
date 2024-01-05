@@ -185,6 +185,63 @@ bool isCustomType(char *type) {
 return true;//return true if the type is not a basic type
 }
 
+
+void assignClass(char* left, char* right)
+{
+    char* class_name = nullptr;//initialize the class name
+    
+    // Find the class name of the left variable
+    for (int i = 0; i < nr_symbols; i++)
+    {
+        if (strcmp(left, symbol_table[i].name) == 0)//if the left variable is found
+        {
+            class_name = strdup(symbol_table[i].var_type);//copy the class name
+            break;//break the loop
+        }
+    }
+        for (int i = 0; i < nr_symbols; i++)//search in the symbol table
+    {
+        if (strcmp(symbol_table[i].scope, class_name) == 0)//if the scope is the class name
+        {
+            char* left_member_name = strdup(left);//copy the left variable
+            strcat(left_member_name, ".");//concatenate the left variable with a dot
+            strcat(left_member_name, symbol_table[i].name);//concatenate the left variable with the name of the member
+            
+            char* right_member_name = strdup(right);//copy the right variable
+            strcat(right_member_name, ".");//concatenate the right variable with a dot
+            strcat(right_member_name, symbol_table[i].name);//concatenate the right variable with the name of the member
+            
+            int index_left = search(left_member_name);//search for the left variable
+            int index_right = search(right_member_name);//search for the right variable
+            
+            if (index_left != -1 && index_right != -1)//    if the variables are found
+            {
+                symbol_table[index_left].value = strdup(symbol_table[index_right].value);//copy the value
+            }
+        }
+    }
+}
+bool existsClass(const char* class_name)//check if a class exists
+{
+    for(int i = 0; i < nr_classes; i++)//search in the class table
+    {
+        if(strcmp(class_name, class_table[i].class_name) == 0)//if the class is found
+            return true;//return true
+    }
+    return false;//else return false
+}
+char* createVectorElement(char * identifier, char * index)//create a vector element
+{
+    char * vectorElement = strdup(identifier);//copy the identifier
+    strcat(vectorElement, "[");//concatenate the identifier with a square bracket
+    strcat(vectorElement, index);//concatenate the identifier with the index
+    strcat(vectorElement, "]");//concatenate the identifier with a square bracket
+    return vectorElement;//return the vector element
+}
+string convertIntToString(int value)//convert an integer to a string
+{
+    return to_string(value);//return the string
+}
 void printOneSymbol(symbol s)//print a symbol
 {
     cout<<s.type<<" "<<s.var_type<<" "<<s.name<<" "<<s.value<<'\n';//print the symbol
