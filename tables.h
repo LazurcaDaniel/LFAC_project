@@ -3,280 +3,195 @@
 
 using namespace std;
 
-// Definirea structurii pentru simbolurile variabilelor
-struct Symbol
+struct symbol
 {
-    char* dataType; // "int", "char", etc.
-    char* variableType; // "variable", "constant", "class"
-    char* name; // numele variabilei
-    char* value; // valoarea variabilei
-} symbolTable[1000];
-
-// Definirea structurii pentru parametrii
-struct ParameterStruct
+    char* type; //int, char, etc
+    char* var_type; // variable, constant, class
+    char* name; //name of the variable
+    char* value; //value of the variable
+    char* scope; //scope of the variable
+}symbol_table[1000];//table of symbols
+struct function_symbol
 {
-    char* type;
-    char* typeInfo;
-};
-
-// Definirea structurii pentru simbolurile de funcții
-struct FunctionSymbol
+    char* name;//name of the function
+    char* var_type;//type of the function
+    char * parameters;//parameters of the function
+    char * type_parameters;//type of the parameters
+    char * function_scope;//scope of the function
+}function_table[20];//table of functions
+struct class_symbol
 {
-    char* name; // numele funcției
-    char* variableType; // tipul de variabilă al funcției
-    char* parameters; // parametrii funcției
-    char* typeParameters; // tipurile de parametrii ai funcției
-    char* functionScope; // domeniul de aplicare al funcției
-} functionTable[20];
+    char * class_name;//name of the class
+    char * type;//type of the class
+    int index;//index of the class
+}class_table[100];//table of classes
 
-// Definirea structurii pentru simbolurile de clasă
-struct ClassSymbol
+char lastDeclaredType[20];//last declared type
+char lastDeclaredFunctionType[20];//last declared function type
+int nr_funct = 0;// number of functions
+int nr_symbols = 0;//number of symbols
+int nr_classes = 0;//number of classes
+char lastScope[60] = "Global";//last scope
+char lastFunctionScope[20] = "Global";//last function scope
+
+char* lastType = NULL; // Ultimul tip de variabilă declarat
+
+void updateLastType(char* newType)// Updatează ultimul tip de variabilă declarat
 {
-    char* className; // numele clasei
-    char* type; // tipul clasei (variabilă sau funcție)
-    int index; // indexul clasei
-} classTable[100];
-
-int numberOfSymbols = 0;
-
-char* lastType = nullptr;
-
-// Funcție pentru actualizarea ultimului tip
-void updateLastType(char* newType)
-{
-    if (lastType != nullptr) {
+    if (lastType != NULL) {
         free(lastType);
-    }
-    // Alocare memorie pentru noul tip și copierea acestuia
-    lastType = (char*)malloc(strlen(newType) + 1);
-    lastType = strdup(newType);
+    }// Eliberează memoria alocată pentru ultimul tip de variabilă declarat
+    // Allocate memory for the new type and copy it
+    lastType = (char*)malloc(strlen(newType) + 1);// Alocă memorie pentru noul tip de variabilă și copiază-l
+    lastType = strdup(newType);// Copiază noul tip de variabilă
 }
 
-// Funcție pentru căutarea unui simbol
-int searchSymbol(char* name)
+int search(char *name)//search for a symbol
 {
-    for (int i = 0; i < numberOfSymbols; i++)
-        if (!strcmp(symbolTable[i].name, name))
-            return i;
-    return -1;
+    for(int i = 0; i < nr_symbols; i++)//search in the symbol table
+        if(!strcmp(symbol_table[i].name,name))//if the symbol is found
+            return i;//return the position
+    return -1;//else return -1
 }
-
-// Funcție pentru căutarea unei funcții
-int searchFunction(char* functionName) {
-    for (int i = 0; i < fcount; i++) {
-        if (strcmp(functionTable[i].name, functionName) == 0) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-// Funcție pentru modificarea valorii unei variabile
-void modifyVariableValue(int position, char* newValue)
+int searchFunction(char *c)//search for a function
 {
-    strcpy(symbolTable[position].value, newValue);
+    for(int i = 0; i < nr_funct; i++)//search in the function table
+        if(strcmp(c,function_table[i].name) == 0)//if the function is found
+            return i;//return the position
+    return -1;//    else return -1
+}  
+
+void modifyVarValue(int pos, char* newValue)//modify the value of a variable
+{
+    strcpy(symbol_table[pos].value,newValue);//modify the value
 }
 
-// Funcție pentru adăugarea unui simbol
-void addSymbol(char* type, char* name, char* value, char* variableType)
+void addSymbol(char *type, char* name, char* value, char* var_type)//add a symbol
 {
-    int isAlreadyPresent = searchSymbol(name);
-    if (isAlreadyPresent == -1)
+    int isHereAlready = search(name);//search for the symbol
+    if(isHereAlready == -1)//if the symbol is not found
     {
-        if (strcmp(type, "Variable") == 0)
+        if(strcmp(type, "Variable") == 0)//if the type is variable
         {
-            if (value != nullptr)
-                symbolTable[numberOfSymbols].value = strdup(value);
-            symbolTable[numberOfSymbols].variableType = strdup(variableType);
-            symbolTable[numberOfSymbols].dataType = strdup(type);
-            symbolTable[numberOfSymbols].name = strdup(name);
-            numberOfSymbols++;
+            if(value != NULL)//if the value is not null
+            symbol_table[nr_symbols].value = strdup(value);//copy the value
+            symbol_table[nr_symbols].var_type = strdup(var_type);//copy the variable type
+            symbol_table[nr_symbols].type = strdup(type);//copy the type
+            symbol_table[nr_symbols].name = strdup(name);//copy the name
+            symbol_table[nr_symbols].scope = strdup(lastScope);//copy the scope
+            nr_symbols++;//increment the number of symbols
         }
-        else if (strcmp(type, "Constant") == 0)
+        else if(strcmp(type,"Constant") == 0)//if the type is constant
         {
-            symbolTable[numberOfSymbols].value = strdup(value);
-            symbolTable[numberOfSymbols].variableType = strdup(variableType);
-            symbolTable[numberOfSymbols].dataType = strdup(type);
-            symbolTable[numberOfSymbols].name = strdup(name);
-            numberOfSymbols++;
+            symbol_table[nr_symbols].value = strdup(value);//copy the value
+            symbol_table[nr_symbols].var_type = strdup(var_type);//copy the variable type
+            symbol_table[nr_symbols].type = strdup(type);//copy the type
+            symbol_table[nr_symbols].name = strdup(name);//copy the name
+            symbol_table[nr_symbols].scope = strdup(lastScope);//copy the scope
+            nr_symbols++;//increment the number of symbols
         }
     }
-}
-
-// Funcție pentru adăugarea unei funcții
-int addFunction(char* functionName, char* typeParameters, char* parameters) {
-    int index = searchFunction(functionName);
-
-    if (index != -1) {
-        printf("Function name '%s' already exists.\n", functionName);
-        return -1;
-    }
-
-    functionTable[fcount].name = strdup(functionName);
-    functionTable[fcount].parameters = strdup(parameters);
-    functionTable[fcount].typeParameters = strdup(typeParameters);
-    functionTable[fcount].variableType = strdup(lastDeclaredFunctionType);
-    functionTable[fcount].functionScope = strdup(lastFunctionScope);
-
-    fcount++;
-    return fcount - 1;
-}
-
-// Funcție pentru adăugarea unei clase
-void addClass(char* className) {
-    for (int i = 0; i < count; i++) {
-        if (!strcmp(symbolTable[i].scope, className)) {
-            classTable[classCount++] = (struct ClassSymbol) {
-                .className = strdup(className),
-                .type = strdup(symbolTable[i].dataType),
-                .index = i
-            };
-        }
-    }
-
-    for (int i = 0; i < fcount; i++) {
-        if (!strcmp(functionTable[i].functionScope, className)) {
-            classTable[classCount++] = (struct ClassSymbol) {
-                .className = strdup(className),
-                .type = strdup("Function"),
-                .index = i
-            };
-        }
-    }
-}
-// Funcția addVariableClass este responsabilă pentru adăugarea unei variabile într-o clasă sau într-o funcție, în funcție de tipul clasei.
-void addVariableClass(char *class_name, char *var_name) {
-    int class_index = -1;
-
-    // Caută clasa în class_table
-    for (int i = 0; i < classCount; i++) {
-        if (!strcmp(class_name, class_table[i].class_name)) {
-            class_index = i;
-            break;
-        }
-    }
-
-    // Verifică dacă clasa a fost găsită în tabela de clase
-    if (class_index == -1) {
-        yyerror("There is no class declared with the given name!"); // Afisează eroare în cazul în care clasa nu a fost găsită
-        return;
-    }
-
-    // Verifică tipul clasei: Funcție sau Variabilă
-    if (!strcmp(class_table[class_index].type, "Function")) {
-        // Dacă clasa este o funcție, adăugați variabila în function_table
-        int function_index = class_table[class_index].index;
-
-        char *name = strdup(var_name);
-        strcat(name, ".");
-        strcat(name, function_table[function_index].name);
-
-        // Adaugă variabila în function_table
-        function_table[fcount].name = strdup(name);
-        function_table[fcount].parameters = strdup(function_table[function_index].parameters);
-        function_table[fcount].type_parameters = strdup(function_table[function_index].type_parameters);
-        function_table[fcount].var_type = strdup(function_table[function_index].var_type);
-        function_table[fcount].function_scope = strdup(lastFunctionScope);
-
-        fcount++;
-    } else {
-        // Dacă clasa este o variabilă, adăugați variabila în symbol_table
-        int variable_index = class_table[class_index].index;
-
-        char *name = strdup(var_name);
-        strcat(name, ".");
-        strcat(name, symbol_table[variable_index].name);
-
-        // Adaugă variabila în symbol_table
-        symbol_table[count].name = strdup(name);
-        symbol_table[count].var_type = strdup(symbol_table[variable_index].var_type);
-        symbol_table[count].type = strdup(symbol_table[variable_index].type);
-        symbol_table[count].value = "0"; 
-        symbol_table[count].scope = strdup(lastScope);
-
-        count++;
-    }
-}
-
-// Functie pentru a verifica tipul 
-bool isCustomType(char *type) {
-    // Lista cu tipurile de bază predefinite
-    const char* basicTypes[] = { "int", "char", "float", "string", "bool" };
     
-    // Numărul de tipuri de bază
-    const int numBasicTypes = sizeof(basicTypes) / sizeof(basicTypes[0]);
-
-    // Verifică dacă tipul dat este unul dintre tipurile de bază
-    for (int i = 0; i < numBasicTypes; ++i) {
-        if (strcmp(type, basicTypes[i]) == 0) {
-            return false; // Este un tip de bază
+}
+void addFunctionType(char *type)//add a function type
+{
+    strcpy(lastDeclaredFunctionType, type);//copy the type
+}
+int addFunction(char *name, char* type_parameters, char *parameters)//add a function
+{
+    int isHereAlready = searchFunction(name);//search for the function
+    if(isHereAlready == -1)//if the function is not found
+    {
+        function_table[nr_funct].name = strdup(name);//copy the name
+        function_table[nr_funct].parameters = strdup(parameters);//copy the parameters
+        function_table[nr_funct].type_parameters = strdup(type_parameters);//copy the type of the parameters
+        function_table[nr_funct].var_type = strdup(lastDeclaredFunctionType);//copy the type of the function
+        function_table[nr_funct].function_scope = strdup(lastFunctionScope);//copy the scope of the function
+        nr_funct++;//increment the number of functions
+        return nr_funct - 1;//return the position
+    }
+}
+void addClass(char * class_name)//add a class
+{
+    for(int i = 0; i < nr_symbols; i++)//search in the symbol table
+    {
+        if(!strcmp(symbol_table[i].scope, class_name))//if the scope is the class name
+        {   class_table[nr_classes].class_name = strdup(class_name);//  copy the class name
+            class_table[nr_classes].type = strdup(symbol_table[i].type);//  copy the type
+            class_table[nr_classes].index = i;//  copy the index
+            nr_classes++;//increment the number of classes
         }
     }
-
-    return true; // Nu este un tip de bază, deci este un tip personalizat
-}
-// Funcție pentru a obține numele clasei asociate cu o variabilă
-char* getClassFromVariable(const char* variableName) {
-    for (int i = 0; i < count; ++i) {
-        if (strcmp(variableName, symbol_table[i].name) == 0) {
-            return strdup(symbol_table[i].var_type);
+    for(int i = 0; i < nr_funct; i++)//search in the function table
+    {
+        if(!strcmp(function_table[i].function_scope, class_name))// if the scope is the class name
+        {   class_table[nr_classes].class_name = strdup(class_name);//  copy the class name
+            class_table[nr_classes].type = strdup("Function");//  copy the type
+            class_table[nr_classes].index = i;//  copy the index
+            nr_classes++;//increment the number of classes
         }
     }
-    return NULL;
 }
-
-// Funcție pentru a găsi indexul unei variabile în tabelul de simboluri
-int findSymbolIndex(const char* name) {
-    for (int i = 0; i < count; ++i) {
-        if (strcmp(name, symbol_table[i].name) == 0) {
-            return i;
-        }
+void addVariableClass(char * class_name, char * var_name)//add a variable in a class
+{
+    int isHereAlready = -1;//initialize the position
+    for(int i = 0; i < nr_classes; i++)//search in the class table
+    {
+        if(!strcmp(class_name, class_table[i].class_name))//if the class is found
+            isHereAlready = i;//save the position
     }
-    return -1;
-}
-
-// Funcție pentru a compune numele membrului clasei
-char* composeClassName(const char* variableName, const char* memberName) {
-    char* className = strdup(variableName);
-    strcat(className, ".");
-    strcat(className, memberName);
-    return className;
-}
-
-// Funcția principală care atribuie valoarea membrilor claselor
-void assignClass(char* left, char* right) {
-    char* class_name = getClassFromVariable(left);
-
-    if (class_name != NULL) {
-        for (int i = 0; i < count; ++i) {
-            if (strcmp(symbol_table[i].scope, class_name) == 0) {
-                char* left_member_name = composeClassName(left, symbol_table[i].name);
-                char* right_member_name = composeClassName(right, symbol_table[i].name);
-
-                int index_left = findSymbolIndex(left_member_name);
-                int index_right = findSymbolIndex(right_member_name);
-
-                if (index_left != -1 && index_right != -1) {
-                    symbol_table[index_left].value = strdup(symbol_table[index_right].value);
-                }
+    for(int i = 0; i < nr_classes; ++i)//search in the class table
+    {
+        if(!strcmp(class_name, class_table[i].class_name))//if the class is found
+        {
+            if(!strcmp(class_table[i].type, "Function"))//if the type is function
+            {
+                int index = class_table[i].index;//save the index
+                char * name = strdup(var_name);//copy the name
+                strcat(name, ".");
+                strcat(name, function_table[index].name);
+                function_table[nr_funct].name = strdup(name);//copy the name
+                function_table[nr_funct].parameters = strdup(function_table[index].parameters);//copy the parameters
+                function_table[nr_funct].type_parameters = strdup(function_table[index].type_parameters);//copy the type of the parameters
+                function_table[nr_funct].var_type = strdup(function_table[index].var_type);//copy the type of the function
+                function_table[nr_funct].function_scope = strdup(lastFunctionScope);//copy the scope of the function
+                nr_funct++;//increment the number of functions
+            }
+            else//if the type is variable
+            {
+                int index = class_table[i].index;//save the index
+                char * name = strdup(var_name);//copy the name
+                strcat(name, ".");
+                strcat(name, symbol_table[index].name);
+                symbol_table[nr_symbols].name = strdup(name);//copy the name
+                symbol_table[nr_symbols].var_type = strdup(symbol_table[index].var_type);//copy the variable type
+                symbol_table[nr_symbols].type = strdup(symbol_table[index].type);//copy the type
+                symbol_table[nr_symbols].value = "0";//copy the value
+                symbol_table[nr_symbols].scope = strdup(lastScope);//copy the scope
+                nr_symbols++;//increment the number of symbols
             }
         }
-    } else {
-        // Tratați cazurile speciale sau eroarea pentru un tip non-custom sau nedetectat
     }
 }
+bool isCustomType(char *type) {
+    const char* basicTypes[] = { "int", "char", "float", "string", "bool" };//array of basic types
+    const int numBasicTypes = sizeof(basicTypes) / sizeof(basicTypes[0]);//number of basic types
+    for (int i = 0; i < numBasicTypes; ++i) {//search in the array
+        if (strcmp(type, basicTypes[i]) == 0) {//if the type is found
+            return false; // Return false if the type is a basic type    
+        }
+    }
 
-
-
-// Funcție pentru afișarea unui simbol
-void printOneSymbol(Symbol s)
-{
-    cout << s.dataType << " " << s.variableType << " " << s.name << " " << s.value << '\n';
+return true;//return true if the type is not a basic type
 }
 
-// Funcție pentru afișarea tuturor simbolurilor
-void printSymbols()
+void printOneSymbol(symbol s)//print a symbol
 {
-    for (int i = 0; i < numberOfSymbols; i++)
-        printOneSymbol(symbolTable[i]);
+    cout<<s.type<<" "<<s.var_type<<" "<<s.name<<" "<<s.value<<'\n';//print the symbol
+}
+
+void printSymbols()//print the symbols
+{
+    for(int i = 0; i<nr_symbols; i++)//search in the symbols
+        printOneSymbol(symbol_table[i]);//print a symbol
 }
