@@ -173,6 +173,61 @@ void addVariableClass(char * class_name, char * var_name)//add a variable in a c
         }
     }
 }
+void printTable() {//print the symbol table
+    FILE* file = fopen("symbol_table.txt", "w");//open the file
+    if (file == NULL) {//if the file is not found
+        printf("Error opening file!\n");//print an error message
+        return;//return
+    }
+
+    fprintf(file, "VARIABLE TABLE:\n");//print the variable table
+    fprintf(file, "NAME\t\tVAR_TYPE\tTYPE\t\tVALUE\t\tSCOPE\n");//print the header
+    fprintf(file, "_____________________________________________________________\n");//print the line
+
+    for (int i = 0; i < nr_symbols; i++) {//search in the symbol table
+        if (strcmp(symbol_table[i].type, "Constant") == 0) {//if the type is constant
+            fprintf(file, "%-15s\t%-15s\t%-15s\t%-15s\t%-15s\n",//print the symbol
+                    symbol_table[i].name, symbol_table[i].var_type,//print the symbol
+                    symbol_table[i].type, symbol_table[i].value,//print the symbol
+                    symbol_table[i].scope);//print the symbol
+        }
+    }
+
+    fprintf(file, "\nCONSTANTS:\n");//print the constants
+    fprintf(file, "NAME\t\tVAR_TYPE\tTYPE\t\tVALUE\t\tSCOPE\n");//print the header
+    fprintf(file, "_____________________________________________________________\n");//print the line
+
+    for (int i = 0; i < nr_symbols; i++) {//search in the symbol table
+        if (strcmp(symbol_table[i].type, "Constant") == 0) {//if the type is constant
+            fprintf(file, "%-15s\t%-15s\t%-15s\t%-15s\t%-15s\n",//print the symbol
+                    symbol_table[i].name, symbol_table[i].var_type,//print the symbol
+                    symbol_table[i].type, symbol_table[i].value,//print the symbol
+                    symbol_table[i].scope);//print the symbol
+        }
+    }
+
+    fclose(file);//   close the file
+}
+
+void printFunctionTable() {//print the function table
+    FILE* file = fopen("function_table.txt", "w");//open the file
+    if (file == NULL) {//if the file is not found
+        printf("Error opening file!\n");//print an error message
+        return;//return
+    }
+
+    fprintf(file, "Function Table:\n\n");//print the function table
+    fprintf(file, "Name\t\tReturn Type\tParameters\n");//print the header
+    fprintf(file, "-----------------------------------\n");//print the line
+
+    for (int i = 0; i < nr_funct; i++) {//search in the function table
+        fprintf(file, "%s\t\t%s\t\t%s\n", function_table[i].name, function_table[i].var_type,//print the function
+                function_table[i].parameters);//print the function
+    }
+
+    fclose(file);//close the file
+}
+
 bool isCustomType(char *type) {
     const char* basicTypes[] = { "int", "char", "float", "string", "bool" };//array of basic types
     const int numBasicTypes = sizeof(basicTypes) / sizeof(basicTypes[0]);//number of basic types
@@ -185,6 +240,63 @@ bool isCustomType(char *type) {
 return true;//return true if the type is not a basic type
 }
 
+
+void assignClass(char* left, char* right)
+{
+    char* class_name = nullptr;//initialize the class name
+    
+    // Find the class name of the left variable
+    for (int i = 0; i < nr_symbols; i++)
+    {
+        if (strcmp(left, symbol_table[i].name) == 0)//if the left variable is found
+        {
+            class_name = strdup(symbol_table[i].var_type);//copy the class name
+            break;//break the loop
+        }
+    }
+        for (int i = 0; i < nr_symbols; i++)//search in the symbol table
+    {
+        if (strcmp(symbol_table[i].scope, class_name) == 0)//if the scope is the class name
+        {
+            char* left_member_name = strdup(left);//copy the left variable
+            strcat(left_member_name, ".");//concatenate the left variable with a dot
+            strcat(left_member_name, symbol_table[i].name);//concatenate the left variable with the name of the member
+            
+            char* right_member_name = strdup(right);//copy the right variable
+            strcat(right_member_name, ".");//concatenate the right variable with a dot
+            strcat(right_member_name, symbol_table[i].name);//concatenate the right variable with the name of the member
+            
+            int index_left = search(left_member_name);//search for the left variable
+            int index_right = search(right_member_name);//search for the right variable
+            
+            if (index_left != -1 && index_right != -1)//    if the variables are found
+            {
+                symbol_table[index_left].value = strdup(symbol_table[index_right].value);//copy the value
+            }
+        }
+    }
+}
+bool existsClass(const char* class_name)//check if a class exists
+{
+    for(int i = 0; i < nr_classes; i++)//search in the class table
+    {
+        if(strcmp(class_name, class_table[i].class_name) == 0)//if the class is found
+            return true;//return true
+    }
+    return false;//else return false
+}
+char* createVectorElement(char * identifier, char * index)//create a vector element
+{
+    char * vectorElement = strdup(identifier);//copy the identifier
+    strcat(vectorElement, "[");//concatenate the identifier with a square bracket
+    strcat(vectorElement, index);//concatenate the identifier with the index
+    strcat(vectorElement, "]");//concatenate the identifier with a square bracket
+    return vectorElement;//return the vector element
+}
+string convertIntToString(int value)//convert an integer to a string
+{
+    return to_string(value);//return the string
+}
 void printOneSymbol(symbol s)//print a symbol
 {
     cout<<s.type<<" "<<s.var_type<<" "<<s.name<<" "<<s.value<<'\n';//print the symbol
@@ -195,3 +307,24 @@ void printSymbols()//print the symbols
     for(int i = 0; i<nr_symbols; i++)//search in the symbols
         printOneSymbol(symbol_table[i]);//print a symbol
 }
+void getLastType(char *type)//get the last type
+{
+    strcpy(type, lastDeclaredType);//copy the last type
+}
+
+void updateLastFunctionType(char * type)//update the last function type
+{
+    strcpy(lastDeclaredFunctionType, type);//copy the last function type
+}
+
+
+void updateLastScope(char * scope)//update the last scope
+{
+    strcpy(lastScope,scope);//copy the last scope
+}
+
+void updateLastFunctionScope(char * functionScope)//update the last function scope
+{
+    strcpy(lastFunctionScope,functionScope);//copy the last function scope
+}
+
