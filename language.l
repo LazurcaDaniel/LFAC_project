@@ -14,6 +14,8 @@ ID [a-zA-Z][a-zA-Z0-9]*
 "char" {yylval.string_val = strdup(yytext); return CHAR_TYPE; }
 "string" {yylval.string_val = strdup(yytext); return STRING_TYPE; }
 "bool" {yylval.string_val = strdup(yytext); return BOOL_TYPE; }
+"void" {yylval.string_val = strdup(yytext); return VOID_TYPE; }
+"class" {yylval.string_val = strdup(yytext); return CLASS_TYPE; }
 
 "for" {yylval.string_val = strdup(yytext); return FOR_INST; }
 "while" {yylval.string_val = strdup(yytext); return WHILE_INST; }
@@ -23,13 +25,12 @@ ID [a-zA-Z][a-zA-Z0-9]*
 
 "read" {yylval.string_val = strdup(yytext); return READ;}
 "write" {yylval.string_val = strdup(yytext); return WRITE;}
-
+"return" {yylval.string_val = strdup(yytext); return RETURN;}
 "fn" {yylval.string_val = strdup(yytext); return FUNC;}
-"begin" {yylval.string_val = strdup(yytext); return BEGIN_PRG;}
-"finish" {yylval.string_val = strdup(yytext); return FINISH_PRG;}
 "main" {yylval.string_val = strdup(yytext); return MAIN_PRG;}
 "Eval" {yylval.string_val = strdup(yytext); return EVAL;}
 "TypeOf" {yylval.string_val = strdup(yytext); return TYPEOF;}
+
 
 "+" {yylval.math_op = strdup(yytext); return PLUS;}
 "-" {yylval.math_op = strdup(yytext); return MINUS;}
@@ -40,22 +41,21 @@ ID [a-zA-Z][a-zA-Z0-9]*
 "++" {yylval.math_op = strdup(yytext); return INC;}
 "--" {yylval.math_op = strdup(yytext); return DEC;}
 
-"&&" { yylval.cvalue = strdup(yytext); return AND; } 
-"||" { yylval.cvalue = strdup(yytext); return OR; }
-"!" { yylval.cvalue = strdup(yytext); return NOT; }
-"<" { yylval.cvalue = strdup(yytext); return LT; }
-"<=" { yylval.cvalue = strdup(yytext); return LET; }
-">" { yylval.cvalue = strdup(yytext); return GT; }
-">=" { yylval.cvalue = strdup(yytext); return GET; }
-"==" { yylval.cvalue = strdup(yytext); return EQ; }
-"!=" { yylval.cvalue = strdup(yytext); return NEQ; }
+"&&" {yylval.math_op = strdup(yytext); return AND;} 
+"||" {yylval.math_op = strdup(yytext); return OR;}
+"!" {yylval.math_op = strdup(yytext); return NOT;}
+"==" {yylval.math_op = strdup(yytext); return EQ;}
+"!=" {yylval.math_op = strdup(yytext); return NEQ;}
+"<" {yylval.math_op = strdup(yytext); return LT;}
+"<=" {yylval.math_op = strdup(yytext); return LE;}
+">" {yylval.math_op = strdup(yytext); return GT;}
+">=" {yylval.math_op = strdup(yytext); return GE;}
 
-
+\"(.*)\" {yylval.string_val = strdup(yytext); return STRING_VAL;}
 \'.\' {yylval.string_val = strdup(yytext); return CHAR_VAL;}
 {ID} {yylval.string_val = strdup(yytext); return ID_VAL;}
 [-]?{NUMBER} {yylval.string_val = strdup(yytext); return INT_VAL;}
 [-]?{NUMBER}\.{FLOAT_NR} {yylval.string_val = strdup(yytext); return FLOAT_VAL;}
-\"(.*)\" {yylval.string_val = strdup(yytext); return STRING_VAL;}
 [ ] ;
 [ \t] ;
 [ \n] {line_nr++;}
