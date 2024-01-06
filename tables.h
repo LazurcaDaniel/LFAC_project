@@ -3,6 +3,8 @@
 
 using namespace std;
 
+
+
 struct symbol
 {
     char *type;         // int, char, etc
