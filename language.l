@@ -40,6 +40,16 @@ ID [a-zA-Z][a-zA-Z0-9]*
 "++" {yylval.math_op = strdup(yytext); return INC;}
 "--" {yylval.math_op = strdup(yytext); return DEC;}
 
+"&&" { yylval.cvalue = strdup(yytext); return AND; } 
+"||" { yylval.cvalue = strdup(yytext); return OR; }
+"!" { yylval.cvalue = strdup(yytext); return NOT; }
+"<" { yylval.cvalue = strdup(yytext); return LT; }
+"<=" { yylval.cvalue = strdup(yytext); return LET; }
+">" { yylval.cvalue = strdup(yytext); return GT; }
+">=" { yylval.cvalue = strdup(yytext); return GET; }
+"==" { yylval.cvalue = strdup(yytext); return EQ; }
+"!=" { yylval.cvalue = strdup(yytext); return NEQ; }
+
 
 \'.\' {yylval.string_val = strdup(yytext); return CHAR_VAL;}
 {ID} {yylval.string_val = strdup(yytext); return ID_VAL;}
