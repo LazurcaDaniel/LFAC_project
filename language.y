@@ -34,6 +34,7 @@ struct vec{
 %type<string_val> value
 %type<string_val> function_name
 %type<string_val> return
+%type<string_val> class_name
 %type<params> parameter
 %type<params> function_parameters
 %type<vec_type> vector
@@ -57,21 +58,38 @@ struct vec{
 prog: classes global_variables functions MAIN_PRG {char m[] = "main"; updateLastScope(m); updateLastFuncScope(m);} '{' body '}'
     ;
 
-//TO DO -- CLASSES
-
 global_variables: declaration global_variables
     |
     ;
 
-classes:
-    ;
+classes: classes class
+        | 
+        ;
+
+    class: class_declaration class_var_list 
+         ;
+
+    class_declaration: class_name '{' body_class '}' {char g[] = "Global"; addClass($1); updateLastScope(g); updateLastFuncScope(g);}
+
+    class_name : CLASS_TYPE ID_VAL {$$ = $2; updateLastClassName($2); updateLastFuncScope(strdup($2)); updateLastScope(strdup($2));}
+               ;
+
+    body_class : global_variables functions
+               ;
+               
+    class_var_list: class_var_list ',' class_var
+                  | class_var
+                  |
+                  ;
+
+    class_var: ID_VAL {getLastType(lastClassName); char c[] ="Class"; addSymbol("Variable", strdup($1), NULL, c); addVariableClass(lastClassName, strdup($1));}
 
 functions: function functions
     |
     ;
 
  function : function_name '(' function_parameters ')' '{' body return  '}' {addFunction($1, $3->type, $3->type_and_name);}
-             | function_name '(' function_parameters ')' '{' return  '}' {addFunction($1, $3->type, $3->type_and_name);}
+             | function_name '(' function_parameters ')' '{' return '}' {addFunction($1, $3->type, $3->type_and_name);}
              | function_name '(' function_parameters ')' '{' body '}' {char v[] = "void"; addFunctionType(v); addFunction($1, $3->type, $3->type_and_name); }
              ;
 
@@ -102,7 +120,7 @@ instr:declaration
     |assignement
     ;    
 
-assignement:ID_VAL ASSIGN value {int s = search(strdup($1)); if(s == -1) //x = 5
+assignement:ID_VAL ASSIGN value {int s = search(strdup($1));  if(s == -1) //x = 5
     {
         yyerror("Error! Undeclared variable!");
         return -1;
@@ -265,7 +283,7 @@ assignement:ID_VAL ASSIGN value {int s = search(strdup($1)); if(s == -1) //x = 5
         {
             yyerror("Error! Index type is not correct!");
             return -1;
-        }
+        }   
         int a = search(makeVectorName(strdup($1),atoi(symbol_table[v].value)));
         if(a == -1)
         {

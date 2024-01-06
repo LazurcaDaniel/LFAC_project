@@ -41,6 +41,8 @@ int nr_classes = 0;                    // number of classes
 char lastScope[60] = "Global";         // last scope
 char lastFunctionScope[20] = "Global"; // last function scope
 
+char lastClassName[60];
+
 char *lastType = NULL; // Ultimul tip de variabilă declarat
 
 void updateLastType(char *newType) // Updatează ultimul tip de variabilă declarat
@@ -167,6 +169,11 @@ void addSymbol(const char *type, char *name, char *value, char *var_type) // add
     }
 }
 
+void getLastType(char *type)
+{
+    strcpy(lastDeclaredType, type);
+}
+
 void updateLastScope(char *scope)
 {
     strcpy(lastScope, scope);
@@ -197,6 +204,12 @@ int addFunction(char *name, char *type_parameters, char *parameters) // add a fu
     else
         return -1;
 }
+
+void updateLastClassName(char* name)
+{
+    strcpy(lastClassName,name);
+}
+
 void addClass(char *class_name) // add a class
 {
     for (int i = 0; i < nr_symbols; i++) // search in the symbol table
@@ -295,7 +308,7 @@ void printSymbols() // print the symbols
 }
 
 void printOneFunc(function_symbol f)
-{
+{  
     cout << f.var_type << " " << f.name << " " << f.type_parameters << " " << f.parameters << " " << f.function_scope << '\n';
 }
 
