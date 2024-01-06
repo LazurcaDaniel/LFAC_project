@@ -19,6 +19,7 @@ struct vec{
     char* math_op;
     struct vec* vec_type;
     struct parameters* params;
+    struct BodyTree* body_expr;
 }
 
 %token <string_val> ID_VAL
@@ -29,7 +30,6 @@ struct vec{
 %token <string_val> FUNC MAIN_PRG EVAL TYPEOF RETURN
 %token <math_op> PLUS MINUS MULT DIV MOD ASSIGN INC DEC EQ NEQ LT LE GT GE AND OR UMINUS
 
-
 %type<string_val> type
 %type<string_val> value
 %type<string_val> function_name
@@ -39,6 +39,14 @@ struct vec{
 %type<params> function_parameters
 %type<vec_type> vector
 
+%type <body_expr> body
+%type <body_expr> assignement
+%type <body_expr> condition;
+%type <body_expr> control
+%type <body_expr> if
+%type <body_expr> while
+%type <body_expr> for
+
 
 %right ASSIGN
 %left OR
@@ -47,7 +55,8 @@ struct vec{
 %left LT LET GT GET
 %left MINUS PLUS
 %left MULTIPLY DIVIDE MODULO
-%right INC DEC NOT %nonassoc UMINUS 
+%right INC DEC NOT 
+%nonassoc UMINUS 
 
 
 
@@ -55,14 +64,14 @@ struct vec{
 
 %%
 
-prog: classes global_variables functions MAIN_PRG {char m[] = "main"; updateLastScope(m); updateLastFuncScope(m);} '{' body '}'
+  prog: classes global_variables functions MAIN_PRG {char m[] = "main"; updateLastScope(m); updateLastFuncScope(m);} '{' body '}'
     ;
 
-global_variables: declaration global_variables
+  global_variables: declaration global_variables
     |
     ;
 
-classes: classes class
+  classes: classes class
         | 
         ;
 
@@ -84,7 +93,7 @@ classes: classes class
 
     class_var: ID_VAL {getLastType(lastClassName); char c[] ="Class"; addSymbol("Variable", strdup($1), NULL, c); addVariableClass(lastClassName, strdup($1));}
 
-functions: function functions
+ functions: function functions
     |
     ;
 
@@ -93,18 +102,18 @@ functions: function functions
              | function_name '(' function_parameters ')' '{' body '}' {char v[] = "void"; addFunctionType(v); addFunction($1, $3->type, $3->type_and_name); }
              ;
 
-function_name: FUNC type ID_VAL {$$ = $3; updateLastFuncScope(strdup($3)); updateLastScope(strdup($3));}
+ function_name: FUNC type ID_VAL {$$ = $3; updateLastFuncScope(strdup($3)); updateLastScope(strdup($3));}
     ;
 
 
-function_parameters : function_parameters ',' parameter {$$->type_and_name = strcat(strdup($1->type_and_name), strcat(strdup(", "), strdup($3->type_and_name)));
+ function_parameters : function_parameters ',' parameter {$$->type_and_name = strcat(strdup($1->type_and_name), strcat(strdup(", "), strdup($3->type_and_name)));
                                              $$->type = strcat(strdup($1->type), strdup($3->type));}
                 | parameter {$$ = $1;}
                 | {$$->type_and_name = strdup("No parameters"); $$->type = strdup("No parameters");}
                 ;
 
 
-parameter : type ID_VAL {addSymbol("Variable",strdup($2), NULL, strdup($1));
+ parameter : type ID_VAL {addSymbol("Variable",strdup($2), NULL, strdup($1));
                          $$->type_and_name = strcat(strdup($1), (strcat(strdup(" "), strdup($2))));
                          $$->type = strdup($1);}
               | type ID_VAL '[' value ']' {addSymbol("Vector",strdup($2), strdup($4), strdup($1));
@@ -112,15 +121,81 @@ parameter : type ID_VAL {addSymbol("Variable",strdup($2), NULL, strdup($1));
                          $$->type = strdup($1);}
               ;
 
-body:body instr
-    |instr
+
+
+
+ body:body instr
+    |instr{$$ = $2;}
+    ;
+ 
+ instr:declaration
+    |assignement
+    |control
+    |condition
+    |EVAL '(' condition ')'
+    |TYPEOF '(' condition')' 
+    ;   
+
+    
+     
+ control:
+    |IF_INST 
+    |WHILE_INST
+    |FOR_INST
+    |DO_INST 
+    ;
+ for: FOR_INST '(' declaration ';' condition ';' condition ')' '{' body '}'
+    {
+        $7; // Execute the body of the for statement
+    }
+    ;    
+ while: WHILE_INST '(' condition ')' '{' body '}'
+    {
+        while($3)
+        {
+            $5; // Execute the body of the while statement
+        }
+    }
+    ;
+ if: IF_INST '(' condition ')' '{' body '}'
+    {
+        if ($3) {
+            $5; // Execute the body of the if statement
+        }
+    }
     ;
 
-instr:declaration
-    |assignement
-    ;    
+    IF_INST '(' condition ')' '{' body '}' ELSE_INST '{' body '}'
+    {
+        if ($3) {
+            $5; // Execute the body of the if statement
+        } else {
+            $7; // Execute the body of the else statement
+        }
+    }
+    ;
 
-assignement:ID_VAL ASSIGN value {int s = search(strdup($1));  if(s == -1) //x = 5
+ condition:
+        |condition PLUS condition {if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type; }
+         | condition MINUS condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type; }
+         | condition MULT condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type;}
+         | condition DIV condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");$$->var_type = $1->var_type;}}
+         | condition MODULO condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type;}
+         | condition ASSIGN condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type; }
+         | condition EQ condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type;}
+         | condition NEQ condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type;}
+         | condition LT condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type;}
+         | condition LET condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type;}
+         | condition GT condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type; }
+         | condition GET condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type; }
+         | condition OR condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->var_type = $1->var_type; }
+         |condition INC{$$->var_type = $1->var_type;}
+         |condition DEC{$$->var_type = $1->var_type;}
+         |         
+         ;
+
+       
+ assignement:ID_VAL ASSIGN value {int s = search(strdup($1));  if(s == -1) //x = 5
     {
         yyerror("Error! Undeclared variable!");
         return -1;
