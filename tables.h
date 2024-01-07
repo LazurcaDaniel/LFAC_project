@@ -323,8 +323,15 @@ void printFunctions()
 
 char* itoa(int nr)
 {
+    bool is_negative = 0;
+    if(nr < 0)
+    {
+        nr*=-1;
+        is_negative = 1;
+    }
     char* res = (char*)malloc(20);
     int cnt = 0;
+    
     if(nr == 0)
     {
         res[0] = '0';
@@ -341,5 +348,14 @@ char* itoa(int nr)
     res[cnt] = '\0';
     for(int i = 0; i < cnt/2; i++)
         swap(res[i],res[cnt - i - 1]);
+    if(is_negative)
+    {
+        cnt ++;
+        for(int i = cnt - 1; i > 0; i--)
+        {
+            res[i] = res[i-1];
+        }
+        res[0] = '-';
+    }
     return res;
 }

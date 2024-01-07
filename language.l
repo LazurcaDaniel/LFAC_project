@@ -6,7 +6,7 @@
 %option noyywrap
 NUMBER [0-9]|[1-9][0-9]*
 FLOAT_NR [0-9]+
-ID [a-zA-Z][a-zA-Z0-9]*
+ID [a-zA-Z][a-zA-Z0-9_]*
 
 %%
 "int" {yylval.string_val = strdup(yytext); return INT_TYPE; }
@@ -32,24 +32,24 @@ ID [a-zA-Z][a-zA-Z0-9]*
 "TypeOf" {yylval.string_val = strdup(yytext); return TYPEOF;}
 
 
-"+" {yylval.math_op = strdup(yytext); return PLUS;}
-"-" {yylval.math_op = strdup(yytext); return MINUS;}
-"*" {yylval.math_op = strdup(yytext); return MULT;}
-"/" {yylval.math_op = strdup(yytext); return DIV;}
-"%" {yylval.math_op = strdup(yytext); return MOD;}
-"=" {yylval.math_op = strdup(yytext); return ASSIGN;}
-"++" {yylval.math_op = strdup(yytext); return INC;}
-"--" {yylval.math_op = strdup(yytext); return DEC;}
+"+" {yylval.string_val = strdup(yytext); return PLUS;}
+"-" {yylval.string_val = strdup(yytext); return MINUS;}
+"*" {yylval.string_val = strdup(yytext); return MULT;}
+"/" {yylval.string_val = strdup(yytext); return DIV;}
+"%" {yylval.string_val = strdup(yytext); return MOD;}
+"=" {yylval.string_val = strdup(yytext); return ASSIGN;}
+"++" {yylval.string_val = strdup(yytext); return INC;}
+"--" {yylval.string_val = strdup(yytext); return DEC;}
 
-"&&" {yylval.math_op = strdup(yytext); return AND;} 
-"||" {yylval.math_op = strdup(yytext); return OR;}
-"!" {yylval.math_op = strdup(yytext); return NOT;}
-"==" {yylval.math_op = strdup(yytext); return EQ;}
-"!=" {yylval.math_op = strdup(yytext); return NEQ;}
-"<" {yylval.math_op = strdup(yytext); return LT;}
-"<=" {yylval.math_op = strdup(yytext); return LE;}
-">" {yylval.math_op = strdup(yytext); return GT;}
-">=" {yylval.math_op = strdup(yytext); return GE;}
+"&&" {yylval.string_val = strdup(yytext); return AND;} 
+"||" {yylval.string_val = strdup(yytext); return OR;}
+"!" {yylval.string_val = strdup(yytext); return NOT;}
+"==" {yylval.string_val = strdup(yytext); return EQ;}
+"!=" {yylval.string_val = strdup(yytext); return NEQ;}
+"<" {yylval.string_val = strdup(yytext); return LT;}
+"<=" {yylval.string_val = strdup(yytext); return LE;}
+">" {yylval.string_val = strdup(yytext); return GT;}
+">=" {yylval.string_val = strdup(yytext); return GE;}
 
 \"(.*)\" {yylval.string_val = strdup(yytext); return STRING_VAL;}
 \'.\' {yylval.string_val = strdup(yytext); return CHAR_VAL;}

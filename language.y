@@ -19,14 +19,20 @@ struct cond_symbol
     char* type;
 };
 
+struct expr_symbol
+{
+    char* value;
+    char* type;
+};
+
 %}
 
 %union{
     char* string_val;
-    char* math_op;
     struct vec* vec_type;
     struct parameters* params;
     struct cond_symbol* cond;
+    struct expr_symbol* expr;
 }
 
 %token <string_val> ID_VAL
@@ -35,24 +41,18 @@ struct cond_symbol
 %token <string_val> INT_VAL FLOAT_VAL CHAR_VAL STRING_VAL 
 %token <string_val> READ WRITE
 %token <string_val> FUNC MAIN_PRG EVAL TYPEOF RETURN
-%token <math_op> PLUS MINUS MULT DIV MOD ASSIGN INC DEC EQ NEQ LT LE GT GE AND OR UMINUS
+%token <string_val> PLUS MINUS MULT DIV MOD ASSIGN INC DEC EQ NEQ LT LE GT GE AND OR UMINUS
 
 %type<string_val> type
 %type<string_val> value
 %type<string_val> function_name
-%type<string_val> return
 %type<string_val> class_name
 %type<params> parameter
 %type<params> function_parameters
 %type<vec_type> vector
-
-%type <cond> condition;
-// %type <cond> control
-// %type <cond> if
-// %type <cond> while
-// %type <cond> for
-// %type <cond> do
-
+%type<expr>  expression
+%type <cond> condition
+%type<expr> return
 
 %right ASSIGN
 %left OR
@@ -60,9 +60,8 @@ struct cond_symbol
 %left EQ NEQ
 %left LT LET GT GET
 %left MINUS PLUS
-%left MULTIPLY DIVIDE MODULO
+%left MULT DIV MOD
 %right INC DEC NOT 
-%nonassoc UMINUS 
 
 
 
@@ -70,7 +69,7 @@ struct cond_symbol
 
 %%
 
-  prog: classes global_variables functions MAIN_PRG {char m[] = "main"; updateLastScope(m); updateLastFuncScope(m);} '{' body '}'
+  prog: global_variables classes functions MAIN_PRG {char m[] = "main"; updateLastScope(m); updateLastFuncScope(m);} '{' body '}'
     ;
 
   global_variables: declaration global_variables
@@ -86,7 +85,7 @@ struct cond_symbol
 
     class_declaration: class_name '{' body_class '}' {char g[] = "Global"; addClass($1); updateLastScope(g); updateLastFuncScope(g);}
 
-    class_name : CLASS_TYPE ID_VAL {$$ = $2; updateLastClassName($2); updateLastFuncScope(strdup($2)); updateLastScope(strdup($2));}
+    class_name : CLASS_TYPE ID_VAL { $$ = $2; updateLastClassName($2); updateLastFuncScope(strdup($2)); updateLastScope(strdup($2));}
                ;
 
     body_class : global_variables functions
@@ -103,12 +102,12 @@ struct cond_symbol
     |
     ;
 
- function : function_name '(' function_parameters ')' '{' body return  '}' {addFunction($1, $3->type, $3->type_and_name);}
-             | function_name '(' function_parameters ')' '{' return '}' {addFunction($1, $3->type, $3->type_and_name);}
-             | function_name '(' function_parameters ')' '{' body '}' {char v[] = "void"; addFunctionType(v); addFunction($1, $3->type, $3->type_and_name); }
+ function : function_name '(' function_parameters ')' '{' body return  '}' {if(strcmp($7->type,lastDeclaredFunctionType)) {yyerror("Error! Wrong conversion type!"); return -1;}  addFunction(strdup($1), $3->type, $3->type_and_name); }
+             | function_name '(' function_parameters ')' '{' return '}' {if(strcmp($6->type,lastDeclaredFunctionType)) {yyerror("Error! Wrong conversion type!"); return -1;} addFunction($1, $3->type, $3->type_and_name);}
+             | function_name '(' function_parameters ')' '{' body '}' {char v[] = "void"; addFunctionType(v); addFunction(strdup($1), $3->type, $3->type_and_name); }
              ;
 
- function_name: FUNC type ID_VAL {$$ = $3; updateLastFuncScope(strdup($3)); updateLastScope(strdup($3));}
+ function_name: FUNC type ID_VAL {$$ = strdup($3); updateLastFuncScope(strdup($3)); updateLastScope(strdup($3)); addFunctionType(strdup($2));}
     ;
 
 
@@ -119,7 +118,7 @@ struct cond_symbol
                 ;
 
 
- parameter : type ID_VAL {addSymbol("Variable",strdup($2), NULL, strdup($1));
+ parameter : type ID_VAL { char z[] = "0"; addSymbol("Variable",strdup($2), z, strdup($1));
                          $$->type_and_name = strcat(strdup($1), (strcat(strdup(" "), strdup($2))));
                          $$->type = strdup($1);}
               | type ID_VAL '[' value ']' {addSymbol("Vector",strdup($2), strdup($4), strdup($1));
@@ -148,7 +147,7 @@ struct cond_symbol
     |for
     |do
     ;
- for: FOR_INST '(' declaration ';' condition ';' condition ')' '{' body '}'
+ for: FOR_INST '(' declaration ';' condition ';' expression ')' '{' body '}'
     {
         cout<<"FOR!"<<'\n'; // Execute the body of the for statement
     }
@@ -179,12 +178,7 @@ struct cond_symbol
 
 do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
 
- condition:condition PLUS condition {if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,itoa(atoi($1->value) + atoi($3->value))); }
-         | condition MINUS condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,itoa(atoi($1->value) + atoi($3->value)));}
-         | condition MULT condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,itoa(atoi($1->value) + atoi($3->value)));}
-         | condition DIV condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");$$->type = $1->type;} $$->bool_value = true; strcpy($$->value,itoa(atoi($1->value) + atoi($3->value)));}
-         | condition MODULO condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,itoa(atoi($1->value) + atoi($3->value)));}
-         | condition EQ condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if(strcmp($1->value,$3->value) == 0) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+ condition:condition EQ condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if(strcmp($1->value,$3->value) == 0) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
          | condition NEQ condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if(strcmp($1->value,$3->value)) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
          | condition LT condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->value < $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
          | condition LET condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->value <= $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
@@ -192,8 +186,8 @@ do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
          | condition GET condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->value >= $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
          | condition OR condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->bool_value || $3->bool_value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
          | condition AND condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->bool_value && $3->bool_value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         |condition INC{$$->type = $1->type;}
-         |condition DEC{$$->type = $1->type;}
+        
+         | '(' condition ')' {$$ = $2;}
          |value {int s = search(strdup($1)); if(s == -1){
             yyerror("Error! Variable uninitialised!");
             return -1;
@@ -206,7 +200,7 @@ do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
          strcpy($$->value, symbol_table[s].value);
         
          }
-         |ID_VAL{int s = search(strdup($1)); if(s == -1){
+         |ID_VAL{int s = search(strdup($1)); if(s == -1 || symbol_table[s].value == NULL){
             yyerror("Error! Variable uninitialised!");
             return -1;
          }
@@ -218,17 +212,47 @@ do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
          }        
          ;
 
-       
- assignement:ID_VAL ASSIGN value {int s = search(strdup($1));  if(s == -1) //x = 5
+
+ expression:expression PLUS expression {if(strcmp($1->type, $3->type) || (strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("ERR+");}$$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) + atoi($3->value))); }
+         | expression MINUS expression { if(strcmp($1->type, $3->type) ||(strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("ERR-");}$$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) - atoi($3->value)));}
+         | expression MULT expression { if(strcmp($1->type, $3->type) ||(strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("ERR*");}$$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) * atoi($3->value)));}
+         | expression DIV expression { if(strcmp($1->type, $3->type) || (strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("ERR/");} if(strcmp($3->value,"0") == 0) {yyerror("Error! Cannot divide by 0!"); return -1;} $$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) / atoi($3->value)));}
+         | expression MOD expression { if(strcmp($1->type, $3->type) || (strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("ERR%");} if(strcmp($3->value,"0") == 0) {yyerror("Error! Cannot divide by 0!"); return -1;} $$->type = $1->type; strcpy($$->value,itoa(atoi($1->value) % atoi($3->value)));}
+         | '(' expression ')' {$$ = $2;}
+         |expression INC{if(strcmp($1->type,"int")) {yyerror("Error! You can't increment on a non integer!"); return -1;} $$->type = $1->type; strcpy($$->value,itoa(atoi($1->value) + 1));}
+         |expression DEC{if(strcmp($1->type,"int")) {yyerror("Error! You can't decrement on a non integer!"); return -1;} $$->type = $1->type; strcpy($$->value,itoa(atoi($1->value) - 1));}
+         | ID_VAL
+         {
+            int s = search(strdup($1));
+            if(s == -1 || symbol_table[s].value == NULL)
+            {
+                yyerror("Error! Variable uninitialised!");
+                return -1;
+            }
+            $$->value = (char*) malloc (60);
+            strcpy($$->value, symbol_table[s].value);
+            $$->type = (char*) malloc(60);
+            strcpy($$->type, symbol_table[s].var_type);
+         }  
+         | value
+         {
+            int s = search(strdup($1));
+            $$->value = (char*) malloc (60);
+            strcpy($$->value, symbol_table[s].value);
+            $$->type = (char*) malloc(60);
+            strcpy($$->type, symbol_table[s].var_type);
+         }
+        ;
+ assignement:ID_VAL ASSIGN expression {int s = search(strdup($1));  if(s == -1) //x = 5
     {
         yyerror("Error! Undeclared variable!");
         return -1;
     }
     else
     {
-        int v = search(strdup($3)); if(strcmp(symbol_table[s].var_type,symbol_table[v].var_type) == 0)
+        if(strcmp(symbol_table[s].var_type,$3->type) == 0)
         {
-            modifyVarValue(s,symbol_table[v].value);
+            modifyVarValue(s,$3->value);
         }
         else
         {
@@ -237,28 +261,7 @@ do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
         }
     }
     }
-    |ID_VAL ASSIGN ID_VAL {
-        int s = search(strdup($3)); if(s == -1 || symbol_table[s].value == NULL) // x = y
-    {
-        yyerror("Error! Undeclared variable!");
-        return -1;
-    }
-    else
-    {
-        int v = search(strdup($1)); if(v == -1)
-        {
-            yyerror("Error! Undeclared variable!");
-            return -1;
-        }
-        if(strcmp(symbol_table[s].var_type,symbol_table[v].var_type)!=0)
-        {
-            yyerror("Error! Wrong conversion type.");
-            return -1;
-        }
-        modifyVarValue(v,symbol_table[s].value);
-    }
-    }
-    |ID_VAL '[' value ']' ASSIGN value
+    |ID_VAL '[' value ']' ASSIGN expression
     {
         int s = search(strdup($1));
         if(s == -1)
@@ -266,8 +269,7 @@ do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
             yyerror("Error! Uninitialised value!");
             return -1;
         }
-        int v = search(strdup($6));
-        if(strcmp(symbol_table[v].var_type,symbol_table[s].var_type))
+        if(strcmp($6->type,symbol_table[s].var_type))
         {
             yyerror("Error! Wrong conversion type!");
             return -1;
@@ -286,43 +288,9 @@ do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
             yyerror("Error! Unavailable index!");
             return -1;
         }
-        modifyVarValue(x,symbol_table[v].value);
+        modifyVarValue(x,$6->value);
     }
-    |ID_VAL '[' value ']' ASSIGN ID_VAL
-    {
-        int s = search(strdup($1));
-        if(s == -1)
-        {
-            yyerror("Error! Uninitialised value!");
-            return -1;
-        }
-        int v = search(strdup($6));
-        if(v == -1 || symbol_table[v].value == NULL)
-        {
-            yyerror("Error! Uninitialised value!");
-            return -1;
-        }   
-        if(strcmp(symbol_table[v].var_type,symbol_table[s].var_type))
-        {
-            yyerror("Error! Wrong conversion type!");
-            return -1;
-        }
-        int i = search(strdup($3));
-        if(strcmp(symbol_table[i].var_type,"int") || symbol_table[i].value[0] == '-')
-        {
-            yyerror("Error! Unavailable index!");
-            return -1;
-        }
-        
-        int x = search(getVectorIndexName(strdup($1),strdup($3)));
-        if(x == -1)
-        {
-            yyerror("Error! Unavailable index!");
-            return -1;
-        }
-        modifyVarValue(x,symbol_table[v].value);
-    }
-    |ID_VAL '[' ID_VAL ']' ASSIGN value{
+    |ID_VAL '[' ID_VAL ']' ASSIGN expression{
         int s = search(strdup($1));
         if(s == -1)
         {
@@ -351,97 +319,36 @@ do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
             yyerror("Error! Unavailable index!");
             return -1;
         }
-        int x = search(strdup($6));
-        if(strcmp(symbol_table[s].var_type,symbol_table[x].var_type))
+        if(strcmp(symbol_table[s].var_type,$6->type))
         {
             yyerror("Error! Wrong conversion type.");
             return -1;
         }
-        modifyVarValue(a,symbol_table[x].value);
-    }
-    |ID_VAL '[' ID_VAL ']' ASSIGN ID_VAL
-    {
-        int s = search(strdup($1));
-        if(s == -1)
-        {
-            yyerror("Error! Uninitialised value!");
-            return -1;
-        }
-        int v = search(strdup($3));
-        if(v == -1 || symbol_table[v].value == NULL)
-        {
-            yyerror("Error! Uninitialised value!");
-            return -1;
-        }
-        if(strcmp(symbol_table[v].var_type,"int") || symbol_table[v].value[0] == '-' )
-        {
-            yyerror("Error! Unavailable index!");
-            return -1;
-        }
-        if(strcmp(symbol_table[v].type,"Variable") && strcmp(symbol_table[v].type,"Constant"))
-        {
-            yyerror("Error! Index type is not correct!");
-            return -1;
-        }   
-        int a = search(makeVectorName(strdup($1),atoi(symbol_table[v].value)));
-        if(a == -1)
-        {
-            yyerror("Error! Unavailable index!");
-            return -1;
-        }
-        int x = search(strdup($6));
-        if(x == -1 || symbol_table[x].value == NULL)
-        {
-            yyerror("Error! Uninitialised value!");
-            return -1;
-        }
-        if(strcmp(symbol_table[x].type,"Variable") && strcmp(symbol_table[x].type,"Constant"))
-        {
-            yyerror("Error! Index type is not correct!");
-            return -1;
-        }
-        if(strcmp(symbol_table[s].var_type,symbol_table[x].var_type))
-        {
-            yyerror("Error! Wrong conversion type.");
-            return -1;
-        }
-        modifyVarValue(a,symbol_table[x].value);
+        modifyVarValue(a,$6->value);
     }
     ;  
 
 declaration:type ID_VAL { addSymbol("Variable", strdup($2), NULL, strdup($1)); } //int x
-    |type ID_VAL ASSIGN value { //int x = 5
-        int v = search(strdup($4)); 
-        if(strcmp(symbol_table[v].var_type, lastType)!=0)
+    |type ID_VAL ASSIGN expression { //int x = 5
+        if(strcmp($4->type, lastType)!=0)
         {
             yyerror("Error! Wrong conversion type.");
             return -1;
         }
-        addSymbol("Variable", strdup($2), strdup($4), strdup($1));
-    }
-    |type ID_VAL ASSIGN ID_VAL {int s = search(strdup($4)); if(s == -1) ///int x = y
-    {
-        yyerror("Error! Undeclared variable!");
-        return -1;
-    }
-        if(symbol_table[s].value == NULL)
-        {
-            yyerror("Error! Value uninitialised!");
-            return -1;
-        }
-        if(strcmp(lastType,symbol_table[s].var_type)!=0)
-        {
-            yyerror("Error! Wrong conversion type.");
-            return -1;
-        }
-        addSymbol("Variable",strdup($2),symbol_table[s].value,strdup($1));
-    }       
+        addSymbol("Variable", strdup($2), $4->value, strdup($1));
+    } 
     |type ID_VAL '[' value ']' //int x[100]
     {
         int i = search(strdup($4));
         if(strcmp(symbol_table[i].var_type,"int") || symbol_table[i].value[0] == '-')
         {
             yyerror("Error! Unavailable index!");
+            return -1;
+        }
+        int v = search(strdup($2));
+        if(v!=-1)
+        {
+            yyerror("Error! Redeclaration of variable!");
             return -1;
         }
         addSymbol("Vector", strdup($2),strdup($4),strdup($1));
@@ -503,7 +410,13 @@ declaration:type ID_VAL { addSymbol("Variable", strdup($2), NULL, strdup($1)); }
         {
             yyerror("Error! Uninitialised value!");
             return -1;
-        }   
+        }  
+        int v = search(strdup($2));
+        if(v!=-1)
+        {
+            yyerror("Error! Redeclaration of variable!");
+            return -1;
+        } 
         if(strcmp(symbol_table[i].type,"Variable") && strcmp(symbol_table[i].type,"Constant"))
         {
             yyerror("Error! Index type is not correct!");
@@ -541,12 +454,12 @@ value:INT_VAL {char var_type[] = "int"; addSymbol("Constant", strdup($1), strdup
     |STRING_VAL {char var_type[] = "string"; addSymbol("Constant", strdup($1), strdup($1), var_type); $$ = $1;}
     ;
     
-return: RETURN value
-    | RETURN ID_VAL {int s = search(strdup($2)); if(s == -1 || symbol_table[s].value == NULL)
+return: RETURN expression 
     {
-        yyerror("Error! Variable uninitialised!");
-        return -1;
-    }}
+        $$->type = (char*)malloc(20);
+        $$->value = (char*)malloc(60);
+        $$ = $2;
+    }
     ;    
 %%
 int yyerror(const char* s){
