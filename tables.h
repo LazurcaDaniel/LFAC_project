@@ -236,19 +236,22 @@ void addClass(char *class_name) // add a class
     }
 }
 void addVariableClass(char *class_name, char *var_name) // add a variable in a class
-{
+{   
     int isHereAlready = -1;              // initialize the position
     for (int i = 0; i < nr_classes; i++) // search in the class table
     {
         if (!strcmp(class_name, class_table[i].class_name)) // if the class is found
             isHereAlready = i;                              // save the position
     }
+    
     for (int i = 0; i < nr_classes; ++i) // search in the class table
     {
+        
         if (!strcmp(class_name, class_table[i].class_name)) // if the class is found
         {
             if (!strcmp(class_table[i].type, "Function")) // if the type is function
             {
+                
                 int index = class_table[i].index; // save the index
                 char *name = strdup(var_name);    // copy the name
                 strcat(name, ".");
@@ -262,6 +265,7 @@ void addVariableClass(char *class_name, char *var_name) // add a variable in a c
             }
             else // if the type is variable
             {
+                
                 int index = class_table[i].index; // save the index
                 char *name = strdup(var_name);    // copy the name
                 strcat(name, ".");
@@ -269,6 +273,7 @@ void addVariableClass(char *class_name, char *var_name) // add a variable in a c
                 symbol_table[nr_symbols].name = strdup(name);                             // copy the name
                 symbol_table[nr_symbols].var_type = strdup(symbol_table[index].var_type); // copy the variable type
                 symbol_table[nr_symbols].type = strdup(symbol_table[index].type);         // copy the type
+                symbol_table[nr_symbols].value = (char*)malloc(60);
                 strcpy(symbol_table[nr_symbols].value, "0");                              // copy the value
                 symbol_table[nr_symbols].scope = strdup(lastScope);                       // copy the scope
                 nr_symbols++;                                                             // increment the number of symbols
