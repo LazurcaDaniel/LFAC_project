@@ -320,3 +320,26 @@ void printFunctions()
     for (int i = 0; i < nr_funct; i++)
         printOneFunc(function_table[i]);
 }
+
+char* itoa(int nr)
+{
+    char* res = (char*)malloc(20);
+    int cnt = 0;
+    if(nr == 0)
+    {
+        res[0] = '0';
+        cnt++;
+    }
+    else
+    {
+        while(nr)
+        {
+            res[cnt++] = (char)(nr%10) + '0';
+            nr/=10;
+        }
+    }
+    res[cnt] = '\0';
+    for(int i = 0; i < cnt/2; i++)
+        swap(res[i],res[cnt - i - 1]);
+    return res;
+}

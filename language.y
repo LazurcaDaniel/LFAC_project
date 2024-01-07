@@ -17,7 +17,7 @@ struct cond_symbol
     bool bool_value;
     char* value;
     char* type;
-}
+};
 
 %}
 
@@ -155,20 +155,20 @@ struct cond_symbol
     ;    
  while: WHILE_INST '(' condition ')' '{' body '}'
     {
-        if ($3->value == true) {
+        if ($3->bool_value == true) {
              cout<<"TRUE"<<'\n';  // Execute the body of the if statement
         }
     }
     ;
  if: IF_INST '(' condition ')' '{' body '}'
     {
-        if ($3->value == true) {
+        if ($3->bool_value == true) {
              cout<<"TRUE"<<'\n';  // Execute the body of the if statement
         }
     }
     | IF_INST '(' condition ')' '{' body '}' ELSE_INST '{' body '}'
     {
-        if ($3 -> value == true) {
+        if ($3 -> bool_value == true) {
             cout<<"TRUE"<<'\n'; // Execute the body of the if statement
         } else {
             cout<<"FALSE"<<'\n'; // Execute the body of the else statement
@@ -179,35 +179,41 @@ struct cond_symbol
 
 do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
 
- condition:condition PLUS condition {if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,$1->value + $3->value); }
-         | condition MINUS condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,$1->value - $3->value);}
-         | condition MULT condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,$1->value * $3->value);}
-         | condition DIV condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");$$->type = $1->type;} $$->bool_value = true; strcpy($$->value,$1->value / $3->value);}
-         | condition MODULO condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,$1->value % $3->value);}
-         | condition EQ condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; if(strcmp($1->value,$3->value) == 0) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition NEQ condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; if(strcmp($1->value,$3->value)) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition LT condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; if($1->value < $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition LET condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; if($1->value <= $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition GT condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; if($1->value > $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition GET condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; if($1->value >= $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition OR condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; if($1->bool_value || $3->bool_value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition AND condition { if(strcmp($1->var_type, $3->var_type)) {yyerror("ERR");}$$->type = $1->type; if($1->bool_value && $3->bool_value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+ condition:condition PLUS condition {if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,itoa(atoi($1->value) + atoi($3->value))); }
+         | condition MINUS condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,itoa(atoi($1->value) + atoi($3->value)));}
+         | condition MULT condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,itoa(atoi($1->value) + atoi($3->value)));}
+         | condition DIV condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");$$->type = $1->type;} $$->bool_value = true; strcpy($$->value,itoa(atoi($1->value) + atoi($3->value)));}
+         | condition MODULO condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; $$->bool_value = true; strcpy($$->value,itoa(atoi($1->value) + atoi($3->value)));}
+         | condition EQ condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if(strcmp($1->value,$3->value) == 0) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition NEQ condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if(strcmp($1->value,$3->value)) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition LT condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->value < $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition LET condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->value <= $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition GT condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->value > $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition GET condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->value >= $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition OR condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->bool_value || $3->bool_value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition AND condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->bool_value && $3->bool_value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
          |condition INC{$$->type = $1->type;}
          |condition DEC{$$->type = $1->type;}
          |value {int s = search(strdup($1)); if(s == -1){
             yyerror("Error! Variable uninitialised!");
             return -1;
          }
+          
          $$->bool_value = strcmp(symbol_table[s].value,"0") == 0 ? false : true;
+         $$->type = (char*)malloc(20);
          strcpy($$->type , symbol_table[s].var_type);
+         $$->value = (char*)malloc(60);
          strcpy($$->value, symbol_table[s].value);
+        
          }
          |ID_VAL{int s = search(strdup($1)); if(s == -1){
             yyerror("Error! Variable uninitialised!");
             return -1;
          }
          $$->bool_value = strcmp(symbol_table[s].value,"0") == 0 ? false : true;
+         $$->type = (char*)malloc(20);
          strcpy($$->type , symbol_table[s].var_type);
+         $$->value = (char*)malloc(60);
          strcpy($$->value, symbol_table[s].value);
          }        
          ;
