@@ -56,6 +56,7 @@ ID [a-zA-Z][a-zA-Z0-9_]*
 {ID} {yylval.string_val = strdup(yytext); return ID_VAL;}
 [-]?{NUMBER} {yylval.string_val = strdup(yytext); return INT_VAL;}
 [-]?{NUMBER}\.{FLOAT_NR} {yylval.string_val = strdup(yytext); return FLOAT_VAL;}
+"true" | "false" {yylval.string_val = strdup(yytext); return BOOL_VAL;}
 [ ] ;
 [ \t] ;
 [ \n] {line_nr++;}

@@ -12,18 +12,25 @@ struct vec{
     char* value[10];
 };
 
-struct cond_symbol
+struct expr_symbol
 {
     bool bool_value;
     char* value;
     char* type;
 };
 
-struct expr_symbol
+struct par
 {
-    char* value;
     char* type;
+    char* value;
 };
+
+struct call_parameters
+{
+    int cnt = 0;
+    par* parameters[100];
+};
+
 
 %}
 
@@ -33,12 +40,14 @@ struct expr_symbol
     struct parameters* params;
     struct cond_symbol* cond;
     struct expr_symbol* expr;
+    struct call_parameters* paramets;
+    struct par* paramet;
 }
 
 %token <string_val> ID_VAL
 %token <string_val> INT_TYPE FLOAT_TYPE CHAR_TYPE STRING_TYPE BOOL_TYPE VOID_TYPE CLASS_TYPE 
 %token <string_val> FOR_INST WHILE_INST IF_INST ELSE_INST DO_INST
-%token <string_val> INT_VAL FLOAT_VAL CHAR_VAL STRING_VAL 
+%token <string_val> INT_VAL FLOAT_VAL CHAR_VAL STRING_VAL BOOL_VAL
 %token <string_val> READ WRITE
 %token <string_val> FUNC MAIN_PRG EVAL TYPEOF RETURN
 %token <string_val> PLUS MINUS MULT DIV MOD ASSIGN INC DEC EQ NEQ LT LE GT GE AND OR UMINUS
@@ -51,8 +60,10 @@ struct expr_symbol
 %type<params> function_parameters
 %type<vec_type> vector
 %type<expr>  expression
-%type <cond> condition
+%type <expr> condition
 %type<expr> return
+%type<paramets> call_params
+%type<paramet> call_param
 
 %right ASSIGN
 %left OR
@@ -111,8 +122,9 @@ struct expr_symbol
     ;
 
 
- function_parameters : function_parameters ',' parameter {$$->type_and_name = strcat(strdup($1->type_and_name), strcat(strdup(", "), strdup($3->type_and_name)));
-                                             $$->type = strcat(strdup($1->type), strdup($3->type));}
+ function_parameters : function_parameters ',' parameter {$$->type_and_name = strcat(strdup($1->type_and_name), strcat(strdup(","), strdup($3->type_and_name)));
+                                             $$->type = strcat($1->type,$3->type);
+                                             }
                 | parameter {$$ = $1;}
                 | {$$->type_and_name = strdup("No parameters"); $$->type = strdup("No parameters");}
                 ;
@@ -157,12 +169,20 @@ struct expr_symbol
         if ($3->bool_value == true) {
              cout<<"TRUE"<<'\n';  // Execute the body of the if statement
         }
+        else
+        {
+            cout<<"FALSE"<<'\n';
+        }
     }
     ;
  if: IF_INST '(' condition ')' '{' body '}'
     {
         if ($3->bool_value == true) {
              cout<<"TRUE"<<'\n';  // Execute the body of the if statement
+        }
+        else
+        {
+            cout<<"FALSE"<<'\n';
         }
     }
     | IF_INST '(' condition ')' '{' body '}' ELSE_INST '{' body '}'
@@ -178,49 +198,26 @@ struct expr_symbol
 
 do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
 
- condition:condition EQ condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if(strcmp($1->value,$3->value) == 0) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition NEQ condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if(strcmp($1->value,$3->value)) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition LT condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->value < $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition LET condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->value <= $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition GT condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->value > $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition GET condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->value >= $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition OR condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->bool_value || $3->bool_value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-         | condition AND condition { if(strcmp($1->type, $3->type)) {yyerror("ERR");}$$->type = $1->type; if($1->bool_value && $3->bool_value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
-        
-         | '(' condition ')' {$$ = $2;}
-         |value {int s = search(strdup($1)); if(s == -1){
-            yyerror("Error! Variable uninitialised!");
-            return -1;
-         }
-          
-         $$->bool_value = strcmp(symbol_table[s].value,"0") == 0 ? false : true;
-         $$->type = (char*)malloc(20);
-         strcpy($$->type , symbol_table[s].var_type);
-         $$->value = (char*)malloc(60);
-         strcpy($$->value, symbol_table[s].value);
-        
-         }
-         |ID_VAL{int s = search(strdup($1)); if(s == -1 || symbol_table[s].value == NULL){
-            yyerror("Error! Variable uninitialised!");
-            return -1;
-         }
-         $$->bool_value = strcmp(symbol_table[s].value,"0") == 0 ? false : true;
-         $$->type = (char*)malloc(20);
-         strcpy($$->type , symbol_table[s].var_type);
-         $$->value = (char*)malloc(60);
-         strcpy($$->value, symbol_table[s].value);
-         }        
+ condition:condition EQ condition { if(strcmp($1->type, $3->type)) {yyerror("Error! Wrong conversion type!"); return -1;}$$->type = $1->type; if(strcmp($1->value,$3->value) == 0) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition NEQ condition { if(strcmp($1->type, $3->type)) {yyerror("Error! Wrong conversion type!"); return -1;}$$->type = $1->type; if(strcmp($1->value,$3->value)) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition LT condition { if(strcmp($1->type, $3->type)) {yyerror("Error! Wrong conversion type!"); return -1;}$$->type = $1->type; if($1->value < $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition LET condition { if(strcmp($1->type, $3->type)) {yyerror("Error! Wrong conversion type!"); return -1;}$$->type = $1->type; if($1->value <= $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition GT condition { if(strcmp($1->type, $3->type)) {yyerror("Error! Wrong conversion type!"); return -1;}$$->type = $1->type; if($1->value > $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition GET condition { if(strcmp($1->type, $3->type)) {yyerror("Error! Wrong conversion type!"); return -1;}$$->type = $1->type; if($1->value >= $3->value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition OR condition { if(strcmp($1->type, $3->type)) {yyerror("Error! Wrong conversion type!"); return -1;}$$->type = $1->type; if($1->bool_value || $3->bool_value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         | condition AND condition { if(strcmp($1->type, $3->type)) {yyerror("Error! Wrong conversion type!"); return -1;}$$->type = $1->type; if($1->bool_value && $3->bool_value) {$$->bool_value = true; strcpy($$->value,"1");} else {$$->bool_value = false; strcpy($$->value,"1");}}
+         |expression {$$ = $1;}      
          ;
 
 
- expression:expression PLUS expression {if(strcmp($1->type, $3->type) || (strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("ERR+");}$$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) + atoi($3->value))); }
-         | expression MINUS expression { if(strcmp($1->type, $3->type) ||(strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("ERR-");}$$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) - atoi($3->value)));}
-         | expression MULT expression { if(strcmp($1->type, $3->type) ||(strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("ERR*");}$$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) * atoi($3->value)));}
-         | expression DIV expression { if(strcmp($1->type, $3->type) || (strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("ERR/");} if(strcmp($3->value,"0") == 0) {yyerror("Error! Cannot divide by 0!"); return -1;} $$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) / atoi($3->value)));}
-         | expression MOD expression { if(strcmp($1->type, $3->type) || (strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("ERR%");} if(strcmp($3->value,"0") == 0) {yyerror("Error! Cannot divide by 0!"); return -1;} $$->type = $1->type; strcpy($$->value,itoa(atoi($1->value) % atoi($3->value)));}
+ expression:expression PLUS expression {if(strcmp($1->type, $3->type) || (strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("Error! Wrong conversion type!"); return -1;}$$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) + atoi($3->value))); strcmp($$->value,"0") == 0 ? true : false;}
+         | expression MINUS expression { if(strcmp($1->type, $3->type) ||(strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("Error! Wrong conversion type!"); return -1;}$$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) - atoi($3->value))); strcmp($$->value,"0") == 0 ? true : false;}
+         | expression MULT expression { if(strcmp($1->type, $3->type) ||(strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("Error! Wrong conversion type!"); return -1;}$$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) * atoi($3->value))); strcmp($$->value,"0") == 0 ? true : false;}
+         | expression DIV expression { if(strcmp($1->type, $3->type) || (strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("Error! Wrong conversion type!"); return -1;} if(strcmp($3->value,"0") == 0) {yyerror("Error! Cannot divide by 0!"); return -1;} $$->type = $1->type;  strcpy($$->value,itoa(atoi($1->value) / atoi($3->value))); strcmp($$->value,"0") == 0 ? true : false;}
+         | expression MOD expression { if(strcmp($1->type, $3->type) || (strcmp($1->type,"int") && strcmp($1->type,"float"))) {yyerror("Error! Wrong conversion type!"); return -1;}if(strcmp($3->value,"0") == 0) {yyerror("Error! Cannot divide by 0!"); return -1;} $$->type = $1->type; strcpy($$->value,itoa(atoi($1->value) % atoi($3->value))); strcmp($$->value,"0") == 0 ? true : false;}
          | '(' expression ')' {$$ = $2;}
-         |expression INC{if(strcmp($1->type,"int")) {yyerror("Error! You can't increment on a non integer!"); return -1;} $$->type = $1->type; strcpy($$->value,itoa(atoi($1->value) + 1));}
-         |expression DEC{if(strcmp($1->type,"int")) {yyerror("Error! You can't decrement on a non integer!"); return -1;} $$->type = $1->type; strcpy($$->value,itoa(atoi($1->value) - 1));}
+         |expression INC{if(strcmp($1->type,"int")) {yyerror("Error! You can't increment on a non integer!"); return -1;} $$->type = $1->type; strcpy($$->value,itoa(atoi($1->value) + 1)); strcmp($$->value,"0") == 0 ? true : false;}
+         |expression DEC{if(strcmp($1->type,"int")) {yyerror("Error! You can't decrement on a non integer!"); return -1;} $$->type = $1->type; strcpy($$->value,itoa(atoi($1->value) - 1)); strcmp($$->value,"0") == 0 ? true : false;}
          | ID_VAL
          {
             int s = search(strdup($1));
@@ -241,6 +238,19 @@ do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
             strcpy($$->value, symbol_table[s].value);
             $$->type = (char*) malloc(60);
             strcpy($$->type, symbol_table[s].var_type);
+         }
+         | ID_VAL '(' call_params ')'
+         {
+            int s = searchFunction(strdup($1));
+            if(s == -1 )
+            {
+                yyerror("Error! Variable uninitialised!");
+                return -1;
+            }
+            $$->value = (char*) malloc (60);
+            strcpy($$->value,"0");
+            $$->type = (char*) malloc(60);
+            strcpy($$->type,function_table[s].var_type);
          }
         ;
  assignement:ID_VAL ASSIGN expression {int s = search(strdup($1));  if(s == -1) //x = 5
@@ -326,8 +336,58 @@ do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
         }
         modifyVarValue(a,$6->value);
     }
-    ;  
+    | ID_VAL '(' call_params ')' 
+    {
+        int s = searchFunction(strdup($1));
+        if(s == -1)
+        {
+            yyerror("Error! Function non-existant!");
+            return -1;
+        }
+        char *r = (char*) malloc(100);
+        for(int i = 0; i < $3->cnt; i++)
+        {
+            strcat(r,$3->parameters[i]->type);
+        }
+        if(strcmp(r,function_table[s].type_parameters))
+        {
+            yyerror("Error! Incorrect parameters!");
+            return -1;
+        }
+    }
+    ;
 
+call_params: call_params ',' call_param
+    {
+        $1->parameters[$1->cnt] = new par;
+        $1->parameters[$1->cnt]->type = (char*)malloc(20);
+        $1->parameters[$1->cnt]->value = (char*)malloc(60);
+        strcpy($1->parameters[$1->cnt]->type,$3->type);
+        strcpy($1->parameters[$1->cnt]->value,$3->value);
+        $1->cnt++;
+        $$ = $1;
+    }
+    |call_param {
+        $$ = new call_parameters;
+        $$->cnt = 0;
+        $$->parameters[0] = new par;
+        $$->parameters[0]->type = (char*)malloc(20);
+        $$->parameters[0]->value = (char*)malloc(60);
+        strcpy($$->parameters[$$->cnt]->type,$1->type);
+        strcpy($$->parameters[$$->cnt]->value,$1->value);
+        $$->cnt++;
+    }
+    ;
+
+call_param: expression 
+    {
+        $$ = new par;
+        $$->type = (char*)malloc(20);
+        strcpy($$->type,$1->type);
+        $$->value = (char*)malloc(60);
+        strcpy($$->value,$1->value);
+    }
+    ;
 declaration:type ID_VAL { addSymbol("Variable", strdup($2), NULL, strdup($1)); } //int x
     |type ID_VAL ASSIGN expression { //int x = 5
         if(strcmp($4->type, lastType)!=0)
@@ -452,6 +512,7 @@ value:INT_VAL {char var_type[] = "int"; addSymbol("Constant", strdup($1), strdup
     |FLOAT_VAL {char var_type[] = "float"; addSymbol("Constant", strdup($1), strdup($1), var_type); $$ = $1;}
     |CHAR_VAL {char var_type[] = "char"; addSymbol("Constant", strdup($1), strdup($1), var_type); $$ = $1;}
     |STRING_VAL {char var_type[] = "string"; addSymbol("Constant", strdup($1), strdup($1), var_type); $$ = $1;}
+    |BOOL_VAL {char var_type[] = "bool"; addSymbol("Constant", strdup($1), strdup($1), var_type); $$ = $1;}
     ;
     
 return: RETURN expression 
