@@ -60,31 +60,44 @@ extern int yydebug;
     CHAR_TYPE = 261,               /* CHAR_TYPE  */
     STRING_TYPE = 262,             /* STRING_TYPE  */
     BOOL_TYPE = 263,               /* BOOL_TYPE  */
-    FOR_INST = 264,                /* FOR_INST  */
-    WHILE_INST = 265,              /* WHILE_INST  */
-    IF_INST = 266,                 /* IF_INST  */
-    ELSE_INST = 267,               /* ELSE_INST  */
-    DO_INST = 268,                 /* DO_INST  */
-    INT_VAL = 269,                 /* INT_VAL  */
-    FLOAT_VAL = 270,               /* FLOAT_VAL  */
-    CHAR_VAL = 271,                /* CHAR_VAL  */
-    STRING_VAL = 272,              /* STRING_VAL  */
-    READ = 273,                    /* READ  */
-    WRITE = 274,                   /* WRITE  */
-    FUNC = 275,                    /* FUNC  */
-    BEGIN_PRG = 276,               /* BEGIN_PRG  */
-    FINISH_PRG = 277,              /* FINISH_PRG  */
-    MAIN_PRG = 278,                /* MAIN_PRG  */
-    EVAL = 279,                    /* EVAL  */
-    TYPEOF = 280,                  /* TYPEOF  */
-    PLUS = 281,                    /* PLUS  */
-    MINUS = 282,                   /* MINUS  */
-    MULT = 283,                    /* MULT  */
-    DIV = 284,                     /* DIV  */
-    MOD = 285,                     /* MOD  */
-    ASSIGN = 286,                  /* ASSIGN  */
-    INC = 287,                     /* INC  */
-    DEC = 288                      /* DEC  */
+    VOID_TYPE = 264,               /* VOID_TYPE  */
+    CLASS_TYPE = 265,              /* CLASS_TYPE  */
+    FOR_INST = 266,                /* FOR_INST  */
+    WHILE_INST = 267,              /* WHILE_INST  */
+    IF_INST = 268,                 /* IF_INST  */
+    ELSE_INST = 269,               /* ELSE_INST  */
+    DO_INST = 270,                 /* DO_INST  */
+    INT_VAL = 271,                 /* INT_VAL  */
+    FLOAT_VAL = 272,               /* FLOAT_VAL  */
+    CHAR_VAL = 273,                /* CHAR_VAL  */
+    STRING_VAL = 274,              /* STRING_VAL  */
+    BOOL_VAL = 275,                /* BOOL_VAL  */
+    READ = 276,                    /* READ  */
+    WRITE = 277,                   /* WRITE  */
+    FUNC = 278,                    /* FUNC  */
+    MAIN_PRG = 279,                /* MAIN_PRG  */
+    EVAL = 280,                    /* EVAL  */
+    TYPEOF = 281,                  /* TYPEOF  */
+    RETURN = 282,                  /* RETURN  */
+    PLUS = 283,                    /* PLUS  */
+    MINUS = 284,                   /* MINUS  */
+    MULT = 285,                    /* MULT  */
+    DIV = 286,                     /* DIV  */
+    MOD = 287,                     /* MOD  */
+    ASSIGN = 288,                  /* ASSIGN  */
+    INC = 289,                     /* INC  */
+    DEC = 290,                     /* DEC  */
+    EQ = 291,                      /* EQ  */
+    NEQ = 292,                     /* NEQ  */
+    LT = 293,                      /* LT  */
+    LE = 294,                      /* LE  */
+    GT = 295,                      /* GT  */
+    GE = 296,                      /* GE  */
+    AND = 297,                     /* AND  */
+    OR = 298,                      /* OR  */
+    LET = 299,                     /* LET  */
+    GET = 300,                     /* GET  */
+    NOT = 301                      /* NOT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -93,12 +106,17 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 14 "language.y"
+#line 39 "language.y"
 
     char* string_val;
-    char* math_op;
+    struct vec* vec_type;
+    struct parameters* params;
+    struct cond_symbol* cond;
+    struct expr_symbol* expr;
+    struct call_parameters* paramets;
+    struct par* paramet;
 
-#line 102 "language.tab.h"
+#line 120 "language.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

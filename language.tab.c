@@ -77,8 +77,35 @@ extern FILE* yyin;
 extern int line_nr;
 using namespace std;
 
+bool ok = true;
 
-#line 82 "language.tab.c"
+struct vec{
+    int nr_elem = 0;
+    char* value[10];
+};
+
+struct expr_symbol
+{
+    bool bool_value;
+    char* value;
+    char* type;
+};
+
+struct par
+{
+    char* type;
+    char* value;
+};
+
+struct call_parameters
+{
+    int cnt = 0;
+    par* parameters[100];
+};
+
+
+
+#line 109 "language.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -115,41 +142,88 @@ enum yysymbol_kind_t
   YYSYMBOL_CHAR_TYPE = 6,                  /* CHAR_TYPE  */
   YYSYMBOL_STRING_TYPE = 7,                /* STRING_TYPE  */
   YYSYMBOL_BOOL_TYPE = 8,                  /* BOOL_TYPE  */
-  YYSYMBOL_FOR_INST = 9,                   /* FOR_INST  */
-  YYSYMBOL_WHILE_INST = 10,                /* WHILE_INST  */
-  YYSYMBOL_IF_INST = 11,                   /* IF_INST  */
-  YYSYMBOL_ELSE_INST = 12,                 /* ELSE_INST  */
-  YYSYMBOL_DO_INST = 13,                   /* DO_INST  */
-  YYSYMBOL_INT_VAL = 14,                   /* INT_VAL  */
-  YYSYMBOL_FLOAT_VAL = 15,                 /* FLOAT_VAL  */
-  YYSYMBOL_CHAR_VAL = 16,                  /* CHAR_VAL  */
-  YYSYMBOL_STRING_VAL = 17,                /* STRING_VAL  */
-  YYSYMBOL_READ = 18,                      /* READ  */
-  YYSYMBOL_WRITE = 19,                     /* WRITE  */
-  YYSYMBOL_FUNC = 20,                      /* FUNC  */
-  YYSYMBOL_BEGIN_PRG = 21,                 /* BEGIN_PRG  */
-  YYSYMBOL_FINISH_PRG = 22,                /* FINISH_PRG  */
-  YYSYMBOL_MAIN_PRG = 23,                  /* MAIN_PRG  */
-  YYSYMBOL_EVAL = 24,                      /* EVAL  */
-  YYSYMBOL_TYPEOF = 25,                    /* TYPEOF  */
-  YYSYMBOL_PLUS = 26,                      /* PLUS  */
-  YYSYMBOL_MINUS = 27,                     /* MINUS  */
-  YYSYMBOL_MULT = 28,                      /* MULT  */
-  YYSYMBOL_DIV = 29,                       /* DIV  */
-  YYSYMBOL_MOD = 30,                       /* MOD  */
-  YYSYMBOL_ASSIGN = 31,                    /* ASSIGN  */
-  YYSYMBOL_INC = 32,                       /* INC  */
-  YYSYMBOL_DEC = 33,                       /* DEC  */
-  YYSYMBOL_34_ = 34,                       /* '{'  */
-  YYSYMBOL_35_ = 35,                       /* '}'  */
-  YYSYMBOL_36_ = 36,                       /* '['  */
-  YYSYMBOL_37_ = 37,                       /* ']'  */
-  YYSYMBOL_YYACCEPT = 38,                  /* $accept  */
-  YYSYMBOL_main = 39,                      /* main  */
-  YYSYMBOL_body = 40,                      /* body  */
-  YYSYMBOL_instr = 41,                     /* instr  */
-  YYSYMBOL_type = 42,                      /* type  */
-  YYSYMBOL_value = 43                      /* value  */
+  YYSYMBOL_VOID_TYPE = 9,                  /* VOID_TYPE  */
+  YYSYMBOL_CLASS_TYPE = 10,                /* CLASS_TYPE  */
+  YYSYMBOL_FOR_INST = 11,                  /* FOR_INST  */
+  YYSYMBOL_WHILE_INST = 12,                /* WHILE_INST  */
+  YYSYMBOL_IF_INST = 13,                   /* IF_INST  */
+  YYSYMBOL_ELSE_INST = 14,                 /* ELSE_INST  */
+  YYSYMBOL_DO_INST = 15,                   /* DO_INST  */
+  YYSYMBOL_INT_VAL = 16,                   /* INT_VAL  */
+  YYSYMBOL_FLOAT_VAL = 17,                 /* FLOAT_VAL  */
+  YYSYMBOL_CHAR_VAL = 18,                  /* CHAR_VAL  */
+  YYSYMBOL_STRING_VAL = 19,                /* STRING_VAL  */
+  YYSYMBOL_BOOL_VAL = 20,                  /* BOOL_VAL  */
+  YYSYMBOL_READ = 21,                      /* READ  */
+  YYSYMBOL_WRITE = 22,                     /* WRITE  */
+  YYSYMBOL_FUNC = 23,                      /* FUNC  */
+  YYSYMBOL_MAIN_PRG = 24,                  /* MAIN_PRG  */
+  YYSYMBOL_EVAL = 25,                      /* EVAL  */
+  YYSYMBOL_TYPEOF = 26,                    /* TYPEOF  */
+  YYSYMBOL_RETURN = 27,                    /* RETURN  */
+  YYSYMBOL_PLUS = 28,                      /* PLUS  */
+  YYSYMBOL_MINUS = 29,                     /* MINUS  */
+  YYSYMBOL_MULT = 30,                      /* MULT  */
+  YYSYMBOL_DIV = 31,                       /* DIV  */
+  YYSYMBOL_MOD = 32,                       /* MOD  */
+  YYSYMBOL_ASSIGN = 33,                    /* ASSIGN  */
+  YYSYMBOL_INC = 34,                       /* INC  */
+  YYSYMBOL_DEC = 35,                       /* DEC  */
+  YYSYMBOL_EQ = 36,                        /* EQ  */
+  YYSYMBOL_NEQ = 37,                       /* NEQ  */
+  YYSYMBOL_LT = 38,                        /* LT  */
+  YYSYMBOL_LE = 39,                        /* LE  */
+  YYSYMBOL_GT = 40,                        /* GT  */
+  YYSYMBOL_GE = 41,                        /* GE  */
+  YYSYMBOL_AND = 42,                       /* AND  */
+  YYSYMBOL_OR = 43,                        /* OR  */
+  YYSYMBOL_LET = 44,                       /* LET  */
+  YYSYMBOL_GET = 45,                       /* GET  */
+  YYSYMBOL_NOT = 46,                       /* NOT  */
+  YYSYMBOL_47_ = 47,                       /* '{'  */
+  YYSYMBOL_48_ = 48,                       /* '}'  */
+  YYSYMBOL_49_ = 49,                       /* ','  */
+  YYSYMBOL_50_ = 50,                       /* '('  */
+  YYSYMBOL_51_ = 51,                       /* ')'  */
+  YYSYMBOL_52_ = 52,                       /* '['  */
+  YYSYMBOL_53_ = 53,                       /* ']'  */
+  YYSYMBOL_54_ = 54,                       /* ';'  */
+  YYSYMBOL_55_ = 55,                       /* '.'  */
+  YYSYMBOL_YYACCEPT = 56,                  /* $accept  */
+  YYSYMBOL_prog = 57,                      /* prog  */
+  YYSYMBOL_58_1 = 58,                      /* $@1  */
+  YYSYMBOL_global_variables = 59,          /* global_variables  */
+  YYSYMBOL_classes = 60,                   /* classes  */
+  YYSYMBOL_class = 61,                     /* class  */
+  YYSYMBOL_class_declaration = 62,         /* class_declaration  */
+  YYSYMBOL_class_name = 63,                /* class_name  */
+  YYSYMBOL_body_class = 64,                /* body_class  */
+  YYSYMBOL_class_var_list = 65,            /* class_var_list  */
+  YYSYMBOL_class_var = 66,                 /* class_var  */
+  YYSYMBOL_functions = 67,                 /* functions  */
+  YYSYMBOL_function = 68,                  /* function  */
+  YYSYMBOL_function_name = 69,             /* function_name  */
+  YYSYMBOL_function_parameters = 70,       /* function_parameters  */
+  YYSYMBOL_parameter = 71,                 /* parameter  */
+  YYSYMBOL_body = 72,                      /* body  */
+  YYSYMBOL_instr = 73,                     /* instr  */
+  YYSYMBOL_write = 74,                     /* write  */
+  YYSYMBOL_read = 75,                      /* read  */
+  YYSYMBOL_control = 76,                   /* control  */
+  YYSYMBOL_for = 77,                       /* for  */
+  YYSYMBOL_while = 78,                     /* while  */
+  YYSYMBOL_if = 79,                        /* if  */
+  YYSYMBOL_do = 80,                        /* do  */
+  YYSYMBOL_condition = 81,                 /* condition  */
+  YYSYMBOL_expression = 82,                /* expression  */
+  YYSYMBOL_assignement = 83,               /* assignement  */
+  YYSYMBOL_call_params = 84,               /* call_params  */
+  YYSYMBOL_call_param = 85,                /* call_param  */
+  YYSYMBOL_declaration = 86,               /* declaration  */
+  YYSYMBOL_vector = 87,                    /* vector  */
+  YYSYMBOL_type = 88,                      /* type  */
+  YYSYMBOL_value = 89,                     /* value  */
+  YYSYMBOL_return = 90                     /* return  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -266,7 +340,7 @@ typedef int yytype_uint16;
 
 
 /* Stored state numbers (used for stacks). */
-typedef yytype_int8 yy_state_t;
+typedef yytype_uint8 yy_state_t;
 
 /* State numbers in computations.  */
 typedef int yy_state_fast_t;
@@ -475,21 +549,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  12
+#define YYFINAL  11
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   35
+#define YYLAST   490
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  38
+#define YYNTOKENS  56
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  6
+#define YYNNTS  35
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  20
+#define YYNRULES  98
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  34
+#define YYNSTATES  208
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   288
+#define YYMAXUTOK   301
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -507,15 +581,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+      50,    51,     2,     2,    49,     2,    55,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,    54,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,    52,     2,    53,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,    36,     2,    37,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    34,     2,    35,     2,     2,     2,     2,
+       2,     2,     2,    47,     2,    48,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -531,16 +605,25 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
-      25,    26,    27,    28,    29,    30,    31,    32,    33
+      25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
+      35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
+      45,    46
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    34,    34,    36,    37,    40,    41,    50,    68,    85,
-     111,   115,   133,   134,   135,   136,   137,   140,   141,   142,
-     143
+       0,    85,    85,    85,    88,    89,    92,    93,    96,    99,
+     101,   104,   107,   108,   109,   112,   114,   115,   118,   119,
+     120,   123,   127,   130,   131,   135,   138,   146,   147,   150,
+     151,   152,   153,   154,   157,   159,   173,   174,   175,   176,
+     178,   183,   194,   204,   212,   215,   217,   218,   219,   220,
+     221,   222,   223,   224,   225,   226,   230,   231,   232,   233,
+     234,   235,   236,   237,   238,   255,   267,   291,   310,   331,
+     335,   340,   358,   387,   423,   442,   456,   477,   487,   499,
+     508,   509,   517,   533,   584,   611,   612,   620,   621,   622,
+     623,   624,   625,   628,   629,   630,   631,   632,   635
 };
 #endif
 
@@ -557,12 +640,19 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
 static const char *const yytname[] =
 {
   "\"end of file\"", "error", "\"invalid token\"", "ID_VAL", "INT_TYPE",
-  "FLOAT_TYPE", "CHAR_TYPE", "STRING_TYPE", "BOOL_TYPE", "FOR_INST",
-  "WHILE_INST", "IF_INST", "ELSE_INST", "DO_INST", "INT_VAL", "FLOAT_VAL",
-  "CHAR_VAL", "STRING_VAL", "READ", "WRITE", "FUNC", "BEGIN_PRG",
-  "FINISH_PRG", "MAIN_PRG", "EVAL", "TYPEOF", "PLUS", "MINUS", "MULT",
-  "DIV", "MOD", "ASSIGN", "INC", "DEC", "'{'", "'}'", "'['", "']'",
-  "$accept", "main", "body", "instr", "type", "value", YY_NULLPTR
+  "FLOAT_TYPE", "CHAR_TYPE", "STRING_TYPE", "BOOL_TYPE", "VOID_TYPE",
+  "CLASS_TYPE", "FOR_INST", "WHILE_INST", "IF_INST", "ELSE_INST",
+  "DO_INST", "INT_VAL", "FLOAT_VAL", "CHAR_VAL", "STRING_VAL", "BOOL_VAL",
+  "READ", "WRITE", "FUNC", "MAIN_PRG", "EVAL", "TYPEOF", "RETURN", "PLUS",
+  "MINUS", "MULT", "DIV", "MOD", "ASSIGN", "INC", "DEC", "EQ", "NEQ", "LT",
+  "LE", "GT", "GE", "AND", "OR", "LET", "GET", "NOT", "'{'", "'}'", "','",
+  "'('", "')'", "'['", "']'", "';'", "'.'", "$accept", "prog", "$@1",
+  "global_variables", "classes", "class", "class_declaration",
+  "class_name", "body_class", "class_var_list", "class_var", "functions",
+  "function", "function_name", "function_parameters", "parameter", "body",
+  "instr", "write", "read", "control", "for", "while", "if", "do",
+  "condition", "expression", "assignement", "call_params", "call_param",
+  "declaration", "vector", "type", "value", "return", YY_NULLPTR
 };
 
 static const char *
@@ -572,7 +662,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-32)
+#define YYPACT_NINF (-114)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -584,12 +674,29 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-static const yytype_int8 yypact[] =
+static const yytype_int16 yypact[] =
 {
-     -29,    19,     9,   -30,   -32,   -32,   -32,   -32,   -32,   -31,
-      19,     7,   -32,    -1,    14,   -32,   -32,   -28,   -32,   -32,
-     -32,   -32,   -32,   -32,    -5,     4,    14,     2,   -32,   -32,
-      -3,    14,   -32,   -32
+     475,  -114,  -114,  -114,  -114,  -114,  -114,    14,  -114,   475,
+      21,  -114,     3,  -114,   -25,    27,   475,  -114,    39,   -29,
+      22,    42,    17,   152,   378,  -114,    73,  -114,    30,  -114,
+     475,  -114,  -114,   475,   -39,  -114,  -114,  -114,  -114,  -114,
+      35,    36,   152,   443,  -114,    34,    38,  -114,    39,    42,
+      41,    45,   -34,  -114,    93,    52,    94,   152,   152,   111,
+     152,   152,   152,   152,   152,  -114,  -114,  -114,    71,  -114,
+    -114,  -114,   399,   475,    75,    79,  -114,   443,     8,  -114,
+    -114,   340,   348,  -114,   455,   455,    40,    40,    40,    78,
+     -27,    82,    87,    88,    97,   144,   152,   201,  -114,  -114,
+    -114,  -114,  -114,  -114,  -114,  -114,  -114,  -114,  -114,   339,
+      92,   152,  -114,  -114,  -114,    92,   152,    98,   410,   149,
+     475,   110,   110,   399,  -114,   443,  -114,  -114,   152,   176,
+     105,   101,  -114,    33,  -114,   443,  -114,    15,   120,   123,
+     141,   132,   110,   395,   443,   405,   222,   443,  -114,   142,
+    -114,  -114,  -114,    92,  -114,   162,   166,   152,   110,  -114,
+     110,   110,   110,   110,   110,   110,   110,   110,   164,   168,
+     205,  -114,  -114,   152,   152,   443,   121,    18,    18,  -114,
+    -114,   156,   425,  -114,  -114,   399,   399,   169,   443,   443,
+     152,   247,   268,   110,   358,  -114,   204,   415,   173,   -11,
+    -114,   399,   399,  -114,   293,   314,  -114,  -114
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -597,67 +704,213 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     0,    12,    13,    15,    16,    14,     0,
-       4,     0,     1,     0,     0,     2,     3,     5,     9,    17,
-      18,    19,    20,     7,     0,     0,     0,     0,     8,     6,
-       0,     0,    10,    11
+       5,    87,    88,    90,    91,    89,    92,     0,     7,     5,
+       0,     1,    17,     4,    80,     0,     0,     6,    14,     0,
+       0,    17,     0,     0,     0,    10,     0,    15,     8,    13,
+       5,     2,    16,    24,    64,    93,    94,    95,    96,    97,
+       0,     0,     0,    81,    65,     0,     0,    21,     0,    17,
+       0,     0,     0,    23,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,    62,    63,    84,    82,    12,
+      11,     9,     0,     0,     0,    25,    67,    79,     0,    78,
+      68,     0,     0,    61,    56,    57,    58,    59,    60,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,    28,    32,
+      33,    31,    38,    37,    36,    39,    30,    29,    22,     0,
+       0,     0,    66,    69,    70,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    35,    34,     3,    27,     0,     0,
+       0,     0,    77,     0,    86,    71,    75,     0,     0,     0,
+       0,     0,     0,     0,    55,     0,     0,    98,    20,     0,
+      19,    26,    83,     0,    74,     0,     0,     0,     0,    54,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,    18,    85,     0,     0,    76,     0,    46,    47,    48,
+      50,    53,    52,    49,    51,     0,     0,     0,    73,    72,
+       0,     0,     0,     0,     0,    41,    42,     0,     0,     0,
+      45,     0,     0,    44,     0,     0,    40,    43
 };
 
 /* YYPGOTO[NTERM-NUM].  */
-static const yytype_int8 yypgoto[] =
+static const yytype_int16 yypgoto[] =
 {
-     -32,   -32,    25,   -32,   -32,   -14
+    -114,  -114,  -114,    13,  -114,  -114,  -114,  -114,  -114,  -114,
+     184,   -16,  -114,  -114,  -114,   148,  -102,   -85,  -114,  -114,
+    -114,  -114,  -114,    37,  -114,  -113,   -23,  -114,   122,   127,
+       1,  -114,   -13,   -20,   112
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
-static const yytype_int8 yydefgoto[] =
+static const yytype_uint8 yydefgoto[] =
 {
-       0,     2,     9,    10,    11,    23
+       0,     7,    51,     8,    12,    17,    18,    19,    50,    28,
+      29,    20,    21,    22,    52,    53,    97,    98,    99,   100,
+     101,   102,   103,   104,   105,   143,   144,   106,    78,    79,
+     107,   133,    10,    44,   130
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
    positive, shift that token.  If negative, reduce the rule whose
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const yytype_int8 yytable[] =
+static const yytype_uint8 yytable[] =
 {
-      24,    13,    18,    25,    15,     1,    14,    28,    26,    12,
-      17,    29,    30,    19,    20,    21,    22,    33,    19,    20,
-      21,    22,     3,     4,     5,     6,     7,     8,    19,    20,
-      21,    22,    27,    31,    32,    16
+      43,     9,    93,    26,    46,    32,   116,   129,    23,   145,
+       9,    55,   127,    15,    11,    73,    56,    74,    30,    59,
+      54,   146,    13,   117,    14,   118,    16,    24,   119,   159,
+      25,     9,    77,    70,    81,    82,   202,    84,    85,    86,
+      87,    88,    27,    49,   127,   176,    31,   177,   178,   179,
+     180,   181,   182,   183,   184,    34,   162,   111,   163,   112,
+      54,   127,   166,   167,   111,    16,   154,    33,    35,    36,
+      37,    38,    39,   125,    65,    66,    47,    40,    41,    48,
+     197,   152,   153,   191,   192,    57,    58,    67,    77,    71,
+     131,    68,    72,   135,    77,   134,    75,    80,   139,   204,
+     205,    34,    42,    76,    89,   147,   127,   127,    35,    36,
+      37,    38,    39,    34,    35,    36,    37,    38,    39,   127,
+     127,   141,   109,    40,    41,   115,    35,    36,    37,    38,
+      39,   110,   120,   172,   175,    40,    41,   121,   122,    60,
+      61,    62,    63,    64,   123,    65,    66,   124,    42,   136,
+     188,   189,   140,   150,   151,    34,   142,   160,   161,   162,
+      42,   163,    83,   164,   165,   166,   167,   194,    35,    36,
+      37,    38,    39,   155,   157,   190,   156,    40,    41,    90,
+       1,     2,     3,     4,     5,     6,   158,    91,    92,    93,
+     171,    94,   160,   161,   162,   173,   163,    95,    96,   174,
+     166,   167,    42,   128,    90,     1,     2,     3,     4,     5,
+       6,   185,    91,    92,    93,   186,    94,   187,   199,   193,
+     201,   108,    95,    96,   148,    90,     1,     2,     3,     4,
+       5,     6,    69,    91,    92,    93,   203,    94,   132,   137,
+       0,   149,     0,    95,    96,     0,     0,     0,     0,   126,
+      90,     1,     2,     3,     4,     5,     6,     0,    91,    92,
+      93,     0,    94,     0,     0,     0,     0,     0,    95,    96,
+     170,    90,     1,     2,     3,     4,     5,     6,     0,    91,
+      92,    93,     0,    94,     0,     0,     0,     0,     0,    95,
+      96,     0,     0,     0,     0,   195,    90,     1,     2,     3,
+       4,     5,     6,     0,    91,    92,    93,     0,    94,     0,
+       0,     0,     0,     0,    95,    96,   196,    90,     1,     2,
+       3,     4,     5,     6,     0,    91,    92,    93,     0,    94,
+       0,     0,     0,     0,     0,    95,    96,     0,     0,     0,
+       0,   206,    90,     1,     2,     3,     4,     5,     6,     0,
+      91,    92,    93,     0,    94,     0,     0,     0,     0,     0,
+      95,    96,   207,     0,     0,     0,   128,     0,    60,    61,
+      62,    63,    64,     0,    65,    66,    60,    61,    62,    63,
+      64,    45,    65,    66,     0,     0,    60,    61,    62,    63,
+      64,   113,    65,    66,    35,    36,    37,    38,    39,   114,
+       0,     0,    90,     1,     2,     3,     4,     5,     6,   198,
+      91,    92,    93,   138,    94,     0,     0,     0,     0,     0,
+      95,    96,     0,     0,     0,     0,    35,    36,    37,    38,
+      39,   160,   161,   162,     0,   163,     0,   164,   165,   166,
+     167,   160,   161,   162,     0,   163,   168,   164,   165,   166,
+     167,   160,   161,   162,     0,   163,   169,   164,   165,   166,
+     167,   160,   161,   162,     0,   163,   200,   164,     0,   166,
+     167,    60,    61,    62,    63,    64,     0,    65,    66,     1,
+       2,     3,     4,     5,     6,    62,    63,    64,     0,    65,
+      66
 };
 
-static const yytype_int8 yycheck[] =
+static const yytype_int16 yycheck[] =
 {
-      14,    31,     3,    31,    35,    34,    36,     3,    36,     0,
-       3,    25,    26,    14,    15,    16,    17,    31,    14,    15,
-      16,    17,     3,     4,     5,     6,     7,     8,    14,    15,
-      16,    17,    37,    31,    37,    10
+      23,     0,    13,    16,    24,    21,    33,   109,    33,   122,
+       9,    50,    97,    10,     0,    49,    55,    51,    47,    42,
+      33,   123,     9,    50,     3,    52,    23,    52,    55,   142,
+       3,    30,    55,    49,    57,    58,    47,    60,    61,    62,
+      63,    64,     3,    30,   129,   158,    24,   160,   161,   162,
+     163,   164,   165,   166,   167,     3,    38,    49,    40,    51,
+      73,   146,    44,    45,    49,    23,    51,    50,    16,    17,
+      18,    19,    20,    96,    34,    35,     3,    25,    26,    49,
+     193,    48,    49,   185,   186,    50,    50,    53,   111,    48,
+     110,    53,    47,   116,   117,   115,     3,     3,   118,   201,
+     202,     3,    50,    51,    33,   128,   191,   192,    16,    17,
+      18,    19,    20,     3,    16,    17,    18,    19,    20,   204,
+     205,   120,    47,    25,    26,    47,    16,    17,    18,    19,
+      20,    52,    50,   153,   157,    25,    26,    50,    50,    28,
+      29,    30,    31,    32,    47,    34,    35,     3,    50,    51,
+     173,   174,     3,    48,    53,     3,    46,    36,    37,    38,
+      50,    40,    51,    42,    43,    44,    45,   190,    16,    17,
+      18,    19,    20,    53,    33,    54,    53,    25,    26,     3,
+       4,     5,     6,     7,     8,     9,    54,    11,    12,    13,
+      48,    15,    36,    37,    38,    33,    40,    21,    22,    33,
+      44,    45,    50,    27,     3,     4,     5,     6,     7,     8,
+       9,    47,    11,    12,    13,    47,    15,    12,    14,    50,
+      47,    73,    21,    22,    48,     3,     4,     5,     6,     7,
+       8,     9,    48,    11,    12,    13,   199,    15,   111,   117,
+      -1,   129,    -1,    21,    22,    -1,    -1,    -1,    -1,    48,
+       3,     4,     5,     6,     7,     8,     9,    -1,    11,    12,
+      13,    -1,    15,    -1,    -1,    -1,    -1,    -1,    21,    22,
+      48,     3,     4,     5,     6,     7,     8,     9,    -1,    11,
+      12,    13,    -1,    15,    -1,    -1,    -1,    -1,    -1,    21,
+      22,    -1,    -1,    -1,    -1,    48,     3,     4,     5,     6,
+       7,     8,     9,    -1,    11,    12,    13,    -1,    15,    -1,
+      -1,    -1,    -1,    -1,    21,    22,    48,     3,     4,     5,
+       6,     7,     8,     9,    -1,    11,    12,    13,    -1,    15,
+      -1,    -1,    -1,    -1,    -1,    21,    22,    -1,    -1,    -1,
+      -1,    48,     3,     4,     5,     6,     7,     8,     9,    -1,
+      11,    12,    13,    -1,    15,    -1,    -1,    -1,    -1,    -1,
+      21,    22,    48,    -1,    -1,    -1,    27,    -1,    28,    29,
+      30,    31,    32,    -1,    34,    35,    28,    29,    30,    31,
+      32,     3,    34,    35,    -1,    -1,    28,    29,    30,    31,
+      32,    51,    34,    35,    16,    17,    18,    19,    20,    51,
+      -1,    -1,     3,     4,     5,     6,     7,     8,     9,    51,
+      11,    12,    13,     3,    15,    -1,    -1,    -1,    -1,    -1,
+      21,    22,    -1,    -1,    -1,    -1,    16,    17,    18,    19,
+      20,    36,    37,    38,    -1,    40,    -1,    42,    43,    44,
+      45,    36,    37,    38,    -1,    40,    51,    42,    43,    44,
+      45,    36,    37,    38,    -1,    40,    51,    42,    43,    44,
+      45,    36,    37,    38,    -1,    40,    51,    42,    -1,    44,
+      45,    28,    29,    30,    31,    32,    -1,    34,    35,     4,
+       5,     6,     7,     8,     9,    30,    31,    32,    -1,    34,
+      35
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    34,    39,     3,     4,     5,     6,     7,     8,    40,
-      41,    42,     0,    31,    36,    35,    40,     3,     3,    14,
-      15,    16,    17,    43,    43,    31,    36,    37,     3,    43,
-      43,    31,    37,    43
+       0,     4,     5,     6,     7,     8,     9,    57,    59,    86,
+      88,     0,    60,    59,     3,    10,    23,    61,    62,    63,
+      67,    68,    69,    33,    52,     3,    88,     3,    65,    66,
+      47,    24,    67,    50,     3,    16,    17,    18,    19,    20,
+      25,    26,    50,    82,    89,     3,    89,     3,    49,    59,
+      64,    58,    70,    71,    88,    50,    55,    50,    50,    82,
+      28,    29,    30,    31,    32,    34,    35,    53,    53,    66,
+      67,    48,    47,    49,    51,     3,    51,    82,    84,    85,
+       3,    82,    82,    51,    82,    82,    82,    82,    82,    33,
+       3,    11,    12,    13,    15,    21,    22,    72,    73,    74,
+      75,    76,    77,    78,    79,    80,    83,    86,    71,    47,
+      52,    49,    51,    51,    51,    47,    33,    50,    52,    55,
+      50,    50,    50,    47,     3,    82,    48,    73,    27,    72,
+      90,    89,    85,    87,    89,    82,    51,    84,     3,    89,
+       3,    86,    46,    81,    82,    81,    72,    82,    48,    90,
+      48,    53,    48,    49,    51,    53,    53,    33,    54,    81,
+      36,    37,    38,    40,    42,    43,    44,    45,    51,    51,
+      48,    48,    89,    33,    33,    82,    81,    81,    81,    81,
+      81,    81,    81,    81,    81,    47,    47,    12,    82,    82,
+      54,    72,    72,    50,    82,    48,    48,    81,    51,    14,
+      51,    47,    47,    79,    72,    72,    48,    48
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    38,    39,    40,    40,    41,    41,    41,    41,    41,
-      41,    41,    42,    42,    42,    42,    42,    43,    43,    43,
-      43
+       0,    56,    58,    57,    59,    59,    60,    60,    61,    62,
+      63,    64,    65,    65,    65,    66,    67,    67,    68,    68,
+      68,    69,    70,    70,    70,    71,    71,    72,    72,    73,
+      73,    73,    73,    73,    74,    75,    76,    76,    76,    76,
+      77,    78,    79,    79,    79,    80,    81,    81,    81,    81,
+      81,    81,    81,    81,    81,    81,    82,    82,    82,    82,
+      82,    82,    82,    82,    82,    82,    82,    82,    82,    82,
+      82,    83,    83,    83,    83,    83,    83,    84,    84,    85,
+      86,    86,    86,    86,    86,    87,    87,    88,    88,    88,
+      88,    88,    88,    89,    89,    89,    89,    89,    90
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     3,     2,     1,     2,     4,     3,     4,     3,
-       5,     6,     1,     1,     1,     1,     1,     1,     1,     1,
-       1
+       0,     2,     0,     8,     2,     0,     2,     0,     2,     4,
+       2,     2,     3,     1,     0,     1,     2,     0,     8,     7,
+       7,     3,     3,     1,     0,     2,     5,     2,     1,     1,
+       1,     1,     1,     1,     2,     2,     1,     1,     1,     1,
+      11,     7,     7,    11,     9,     8,     3,     3,     3,     3,
+       3,     3,     3,     3,     2,     1,     3,     3,     3,     3,
+       3,     3,     2,     2,     1,     1,     4,     3,     3,     4,
+       4,     3,     6,     6,     4,     3,     5,     3,     1,     1,
+       2,     4,     5,     9,     5,     3,     1,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     1,     1,     2
 };
 
 
@@ -1120,38 +1373,402 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 5: /* instr: type ID_VAL  */
-#line 40 "language.y"
-                  { addSymbol("Variable", strdup((yyvsp[0].string_val)), NULL, strdup((yyvsp[-1].string_val))); }
-#line 1127 "language.tab.c"
+  case 2: /* $@1: %empty  */
+#line 85 "language.y"
+                                                    {char m[] = "main"; updateLastScope(m); updateLastFuncScope(m);}
+#line 1380 "language.tab.c"
     break;
 
-  case 6: /* instr: type ID_VAL ASSIGN value  */
-#line 41 "language.y"
-                              {
-        int v = search(strdup((yyvsp[0].string_val))); 
-        if(strcmp(symbol_table[v].var_type, lastType)!=0)
+  case 9: /* class_declaration: class_name '{' body_class '}'  */
+#line 99 "language.y"
+                                                     {char g[] = "Global"; addClass((yyvsp[-3].string_val)); updateLastScope(g); updateLastFuncScope(g); }
+#line 1386 "language.tab.c"
+    break;
+
+  case 10: /* class_name: CLASS_TYPE ID_VAL  */
+#line 101 "language.y"
+                                   { (yyval.string_val) = (yyvsp[0].string_val); updateLastClassName((yyvsp[0].string_val)); updateLastFuncScope(strdup((yyvsp[0].string_val))); updateLastScope(strdup((yyvsp[0].string_val)));}
+#line 1392 "language.tab.c"
+    break;
+
+  case 15: /* class_var: ID_VAL  */
+#line 112 "language.y"
+                      {updateLastType(lastClassName); char c[] ="Class"; addSymbol("Variable", strdup((yyvsp[0].string_val)), NULL, c); addVariableClass(lastClassName, strdup((yyvsp[0].string_val))); }
+#line 1398 "language.tab.c"
+    break;
+
+  case 18: /* function: function_name '(' function_parameters ')' '{' body return '}'  */
+#line 118 "language.y"
+                                                                           {if(strcmp((yyvsp[-1].expr)->type,lastDeclaredFunctionType)) {yyerror("Error! Wrong conversion type!"); return -1;}  addFunction(strdup((yyvsp[-7].string_val)), (yyvsp[-5].params)->type, (yyvsp[-5].params)->type_and_name); }
+#line 1404 "language.tab.c"
+    break;
+
+  case 19: /* function: function_name '(' function_parameters ')' '{' return '}'  */
+#line 119 "language.y"
+                                                                        {if(strcmp((yyvsp[-1].expr)->type,lastDeclaredFunctionType)) {yyerror("Error! Wrong conversion type!"); return -1;} addFunction((yyvsp[-6].string_val), (yyvsp[-4].params)->type, (yyvsp[-4].params)->type_and_name);}
+#line 1410 "language.tab.c"
+    break;
+
+  case 20: /* function: function_name '(' function_parameters ')' '{' body '}'  */
+#line 120 "language.y"
+                                                                      {char v[] = "void"; addFunctionType(v); addFunction(strdup((yyvsp[-6].string_val)), (yyvsp[-4].params)->type, (yyvsp[-4].params)->type_and_name); }
+#line 1416 "language.tab.c"
+    break;
+
+  case 21: /* function_name: FUNC type ID_VAL  */
+#line 123 "language.y"
+                                 {(yyval.string_val) = strdup((yyvsp[0].string_val)); updateLastFuncScope(strdup((yyvsp[0].string_val))); updateLastScope(strdup((yyvsp[0].string_val))); addFunctionType(strdup((yyvsp[-1].string_val)));}
+#line 1422 "language.tab.c"
+    break;
+
+  case 22: /* function_parameters: function_parameters ',' parameter  */
+#line 127 "language.y"
+                                                         {(yyval.params)->type_and_name = strcat(strdup((yyvsp[-2].params)->type_and_name), strcat(strdup(","), strdup((yyvsp[0].params)->type_and_name)));
+                                             (yyval.params)->type = strcat((yyvsp[-2].params)->type,(yyvsp[0].params)->type);
+                                             }
+#line 1430 "language.tab.c"
+    break;
+
+  case 23: /* function_parameters: parameter  */
+#line 130 "language.y"
+                            {(yyval.params) = (yyvsp[0].params);}
+#line 1436 "language.tab.c"
+    break;
+
+  case 24: /* function_parameters: %empty  */
+#line 131 "language.y"
+                  {(yyval.params)->type_and_name = strdup("No parameters"); (yyval.params)->type = strdup("No parameters");}
+#line 1442 "language.tab.c"
+    break;
+
+  case 25: /* parameter: type ID_VAL  */
+#line 135 "language.y"
+                         { char z[] = "0"; addSymbol("Variable",strdup((yyvsp[0].string_val)), z, strdup((yyvsp[-1].string_val)));
+                         (yyval.params)->type_and_name = strcat(strdup((yyvsp[-1].string_val)), (strcat(strdup(" "), strdup((yyvsp[0].string_val)))));
+                         (yyval.params)->type = strdup((yyvsp[-1].string_val));}
+#line 1450 "language.tab.c"
+    break;
+
+  case 26: /* parameter: type ID_VAL '[' value ']'  */
+#line 138 "language.y"
+                                          {addSymbol("Vector",strdup((yyvsp[-3].string_val)), strdup((yyvsp[-1].string_val)), strdup((yyvsp[-4].string_val)));
+                         (yyval.params)->type_and_name = strcat(strdup((yyvsp[-4].string_val)), (strcat(strdup(" "), strdup((yyvsp[-3].string_val)))));
+                         (yyval.params)->type = strdup((yyvsp[-4].string_val));}
+#line 1458 "language.tab.c"
+    break;
+
+  case 35: /* read: READ ID_VAL  */
+#line 160 "language.y"
+    {
+        int s = search(strdup((yyvsp[0].string_val)));
+        if(s == -1)
         {
-            yyerror("Error! Wrong conversion type.");
+            yyerror("Error! Variable uninitialised!");
             return -1;
         }
-        addSymbol("Variable", strdup((yyvsp[-2].string_val)), strdup((yyvsp[0].string_val)), strdup((yyvsp[-3].string_val)));
+        char z[] = "0";
+        modifyVarValue(s,z);
     }
-#line 1141 "language.tab.c"
+#line 1473 "language.tab.c"
     break;
 
-  case 7: /* instr: ID_VAL ASSIGN value  */
-#line 50 "language.y"
-                         {int s = search(strdup((yyvsp[-2].string_val))); if(s == -1) //x = 5
+  case 40: /* for: FOR_INST '(' declaration ';' condition ';' expression ')' '{' body '}'  */
+#line 179 "language.y"
+    {
+        cout<<"FOR!"<<'\n'; // Execute the body of the for statement
+    }
+#line 1481 "language.tab.c"
+    break;
+
+  case 41: /* while: WHILE_INST '(' condition ')' '{' body '}'  */
+#line 184 "language.y"
+    {
+        if ((yyvsp[-4].expr)->bool_value == true) {
+             cout<<"TRUE"<<'\n';  // Execute the body of the if statement
+        }
+        else
+        {
+            cout<<"FALSE"<<'\n';
+        }
+    }
+#line 1495 "language.tab.c"
+    break;
+
+  case 42: /* if: IF_INST '(' condition ')' '{' body '}'  */
+#line 195 "language.y"
+    {
+        if ((yyvsp[-4].expr)->bool_value == true) {
+             cout<<"TRUE"<<'\n';  // Execute the body of the if statement
+        }
+        else
+        {
+            cout<<"FALSE"<<'\n';
+        }
+    }
+#line 1509 "language.tab.c"
+    break;
+
+  case 43: /* if: IF_INST '(' condition ')' '{' body '}' ELSE_INST '{' body '}'  */
+#line 205 "language.y"
+    {
+        if ((yyvsp[-8].expr) -> bool_value == true) {
+            cout<<"TRUE"<<'\n'; // Execute the body of the if statement
+        } else {
+            cout<<"FALSE"<<'\n'; // Execute the body of the else statement
+        }
+    }
+#line 1521 "language.tab.c"
+    break;
+
+  case 46: /* condition: condition EQ condition  */
+#line 217 "language.y"
+                                  { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type)) {yyerror("Error! Wrong conversion type!"); return -1;}(yyval.expr)->type = (yyvsp[-2].expr)->type; if(strcmp((yyvsp[-2].expr)->value,(yyvsp[0].expr)->value) == 0) {(yyval.expr)->bool_value = true; strcpy((yyval.expr)->value,"1");} else {(yyval.expr)->bool_value = false; strcpy((yyval.expr)->value,"0");}}
+#line 1527 "language.tab.c"
+    break;
+
+  case 47: /* condition: condition NEQ condition  */
+#line 218 "language.y"
+                                   { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type)) {yyerror("Error! Wrong conversion type!"); return -1;}(yyval.expr)->type = (yyvsp[-2].expr)->type; if(strcmp((yyvsp[-2].expr)->value,(yyvsp[0].expr)->value)) {(yyval.expr)->bool_value = true; strcpy((yyval.expr)->value,"1");} else {(yyval.expr)->bool_value = false; strcpy((yyval.expr)->value,"0");}}
+#line 1533 "language.tab.c"
+    break;
+
+  case 48: /* condition: condition LT condition  */
+#line 219 "language.y"
+                                  { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type)) {yyerror("Error! Wrong conversion type!"); return -1;}(yyval.expr)->type = (yyvsp[-2].expr)->type; if((yyvsp[-2].expr)->value < (yyvsp[0].expr)->value) {(yyval.expr)->bool_value = true; strcpy((yyval.expr)->value,"1");} else {(yyval.expr)->bool_value = false; strcpy((yyval.expr)->value,"0");}}
+#line 1539 "language.tab.c"
+    break;
+
+  case 49: /* condition: condition LET condition  */
+#line 220 "language.y"
+                                   { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type)) {yyerror("Error! Wrong conversion type!"); return -1;}(yyval.expr)->type = (yyvsp[-2].expr)->type; if((yyvsp[-2].expr)->value <= (yyvsp[0].expr)->value) {(yyval.expr)->bool_value = true; strcpy((yyval.expr)->value,"1");} else {(yyval.expr)->bool_value = false; strcpy((yyval.expr)->value,"0");}}
+#line 1545 "language.tab.c"
+    break;
+
+  case 50: /* condition: condition GT condition  */
+#line 221 "language.y"
+                                  { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type)) {yyerror("Error! Wrong conversion type!"); return -1;}(yyval.expr)->type = (yyvsp[-2].expr)->type; if((yyvsp[-2].expr)->value > (yyvsp[0].expr)->value) {(yyval.expr)->bool_value = true; strcpy((yyval.expr)->value,"1");} else {(yyval.expr)->bool_value = false; strcpy((yyval.expr)->value,"0");}}
+#line 1551 "language.tab.c"
+    break;
+
+  case 51: /* condition: condition GET condition  */
+#line 222 "language.y"
+                                   { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type)) {yyerror("Error! Wrong conversion type!"); return -1;}(yyval.expr)->type = (yyvsp[-2].expr)->type; if((yyvsp[-2].expr)->value >= (yyvsp[0].expr)->value) {(yyval.expr)->bool_value = true; strcpy((yyval.expr)->value,"1");} else {(yyval.expr)->bool_value = false; strcpy((yyval.expr)->value,"0");}}
+#line 1557 "language.tab.c"
+    break;
+
+  case 52: /* condition: condition OR condition  */
+#line 223 "language.y"
+                                  { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type)) {yyerror("Error! Wrong conversion type!"); return -1;}(yyval.expr)->type = (yyvsp[-2].expr)->type; if((yyvsp[-2].expr)->bool_value || (yyvsp[0].expr)->bool_value) {(yyval.expr)->bool_value = true; strcpy((yyval.expr)->value,"1");} else {(yyval.expr)->bool_value = false; strcpy((yyval.expr)->value,"0");}}
+#line 1563 "language.tab.c"
+    break;
+
+  case 53: /* condition: condition AND condition  */
+#line 224 "language.y"
+                                   { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type)) {yyerror("Error! Wrong conversion type!"); return -1;}(yyval.expr)->type = (yyvsp[-2].expr)->type; if((yyvsp[-2].expr)->bool_value && (yyvsp[0].expr)->bool_value) {(yyval.expr)->bool_value = true; strcpy((yyval.expr)->value,"1");} else {(yyval.expr)->bool_value = false; strcpy((yyval.expr)->value,"0");}}
+#line 1569 "language.tab.c"
+    break;
+
+  case 54: /* condition: NOT condition  */
+#line 225 "language.y"
+                         { (yyvsp[0].expr)->bool_value = !(yyvsp[0].expr)->bool_value; (yyval.expr) = (yyvsp[0].expr);}
+#line 1575 "language.tab.c"
+    break;
+
+  case 55: /* condition: expression  */
+#line 226 "language.y"
+                     {(yyval.expr) = (yyvsp[0].expr);}
+#line 1581 "language.tab.c"
+    break;
+
+  case 56: /* expression: expression PLUS expression  */
+#line 230 "language.y"
+                                       {if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type) || (strcmp((yyvsp[-2].expr)->type,"int") && strcmp((yyvsp[-2].expr)->type,"float"))) {yyerror("Error! Wrong conversion type!"); return -1;}(yyval.expr)->type = (yyvsp[-2].expr)->type;  strcpy((yyval.expr)->value,itoa(atoi((yyvsp[-2].expr)->value) + atoi((yyvsp[0].expr)->value))); strcmp((yyval.expr)->value,"0") == 0 ? (yyval.expr)->bool_value = true : (yyval.expr)->bool_value = false;}
+#line 1587 "language.tab.c"
+    break;
+
+  case 57: /* expression: expression MINUS expression  */
+#line 231 "language.y"
+                                       { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type) ||(strcmp((yyvsp[-2].expr)->type,"int") && strcmp((yyvsp[-2].expr)->type,"float"))) {yyerror("Error! Wrong conversion type!"); return -1;}(yyval.expr)->type = (yyvsp[-2].expr)->type;  strcpy((yyval.expr)->value,itoa(atoi((yyvsp[-2].expr)->value) - atoi((yyvsp[0].expr)->value))); strcmp((yyval.expr)->value,"0") == 0 ? (yyval.expr)->bool_value = true : (yyval.expr)->bool_value = false;}
+#line 1593 "language.tab.c"
+    break;
+
+  case 58: /* expression: expression MULT expression  */
+#line 232 "language.y"
+                                      { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type) ||(strcmp((yyvsp[-2].expr)->type,"int") && strcmp((yyvsp[-2].expr)->type,"float"))) {yyerror("Error! Wrong conversion type!"); return -1;}(yyval.expr)->type = (yyvsp[-2].expr)->type;  strcpy((yyval.expr)->value,itoa(atoi((yyvsp[-2].expr)->value) * atoi((yyvsp[0].expr)->value))); strcmp((yyval.expr)->value,"0") == 0 ? (yyval.expr)->bool_value = true : (yyval.expr)->bool_value = false;}
+#line 1599 "language.tab.c"
+    break;
+
+  case 59: /* expression: expression DIV expression  */
+#line 233 "language.y"
+                                     { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type) || (strcmp((yyvsp[-2].expr)->type,"int") && strcmp((yyvsp[-2].expr)->type,"float"))) {yyerror("Error! Wrong conversion type!"); return -1;} if(strcmp((yyvsp[0].expr)->value,"0") == 0) {yyerror("Error! Cannot divide by 0!"); return -1;} (yyval.expr)->type = (yyvsp[-2].expr)->type;  strcpy((yyval.expr)->value,itoa(atoi((yyvsp[-2].expr)->value) / atoi((yyvsp[0].expr)->value))); strcmp((yyval.expr)->value,"0") == 0 ? (yyval.expr)->bool_value = true : (yyval.expr)->bool_value = false;}
+#line 1605 "language.tab.c"
+    break;
+
+  case 60: /* expression: expression MOD expression  */
+#line 234 "language.y"
+                                     { if(strcmp((yyvsp[-2].expr)->type, (yyvsp[0].expr)->type) || (strcmp((yyvsp[-2].expr)->type,"int") && strcmp((yyvsp[-2].expr)->type,"float"))) {yyerror("Error! Wrong conversion type!"); return -1;}if(strcmp((yyvsp[0].expr)->value,"0") == 0) {yyerror("Error! Cannot divide by 0!"); return -1;} (yyval.expr)->type = (yyvsp[-2].expr)->type; strcpy((yyval.expr)->value,itoa(atoi((yyvsp[-2].expr)->value) % atoi((yyvsp[0].expr)->value))); strcmp((yyval.expr)->value,"0") == 0 ? (yyval.expr)->bool_value = true : (yyval.expr)->bool_value = false;}
+#line 1611 "language.tab.c"
+    break;
+
+  case 61: /* expression: '(' expression ')'  */
+#line 235 "language.y"
+                              {(yyval.expr) = (yyvsp[-1].expr);}
+#line 1617 "language.tab.c"
+    break;
+
+  case 62: /* expression: expression INC  */
+#line 236 "language.y"
+                        {if(strcmp((yyvsp[-1].expr)->type,"int")) {yyerror("Error! You can't increment on a non integer!"); return -1;} (yyval.expr)->type = (yyvsp[-1].expr)->type; strcpy((yyval.expr)->value,itoa(atoi((yyvsp[-1].expr)->value) + 1)); strcmp((yyval.expr)->value,"0") == 0 ? (yyval.expr)->bool_value = true : (yyval.expr)->bool_value = false;}
+#line 1623 "language.tab.c"
+    break;
+
+  case 63: /* expression: expression DEC  */
+#line 237 "language.y"
+                        {if(strcmp((yyvsp[-1].expr)->type,"int")) {yyerror("Error! You can't decrement on a non integer!"); return -1;} (yyval.expr)->type = (yyvsp[-1].expr)->type; strcpy((yyval.expr)->value,itoa(atoi((yyvsp[-1].expr)->value) - 1)); strcmp((yyval.expr)->value,"0") == 0 ? (yyval.expr)->bool_value = true : (yyval.expr)->bool_value = false;}
+#line 1629 "language.tab.c"
+    break;
+
+  case 64: /* expression: ID_VAL  */
+#line 239 "language.y"
+         {
+            int s = search(strdup((yyvsp[0].string_val)));
+            if(s == -1 || symbol_table[s].value == NULL)
+            {
+                yyerror("Error! Variable uninitialised!");
+                return -1;
+            }
+            (yyval.expr)->value = (char*) malloc (60);
+            strcpy((yyval.expr)->value, symbol_table[s].value);
+            (yyval.expr)->type = (char*) malloc(60);
+            strcpy((yyval.expr)->type, symbol_table[s].var_type);
+            if(strcmp(symbol_table[s].value,"0"))
+                (yyval.expr)->bool_value = false;
+            else
+                (yyval.expr)->bool_value = true;
+         }
+#line 1650 "language.tab.c"
+    break;
+
+  case 65: /* expression: value  */
+#line 256 "language.y"
+         {
+            int s = search(strdup((yyvsp[0].string_val)));
+            (yyval.expr)->value = (char*) malloc (60);
+            strcpy((yyval.expr)->value, symbol_table[s].value);
+            (yyval.expr)->type = (char*) malloc(60);
+            strcpy((yyval.expr)->type, symbol_table[s].var_type);
+            if(strcmp(symbol_table[s].value,"0"))
+                (yyval.expr)->bool_value = false;
+            else
+                (yyval.expr)->bool_value = true;
+         }
+#line 1666 "language.tab.c"
+    break;
+
+  case 66: /* expression: ID_VAL '(' call_params ')'  */
+#line 268 "language.y"
+         {
+            int s = searchFunction(strdup((yyvsp[-3].string_val)));
+            if(s == -1 )
+            {
+                yyerror("Error! Variable uninitialised!");
+                return -1;
+            }
+            char *r = (char*) malloc(100);
+            for(int i = 0; i < (yyvsp[-1].paramets)->cnt; i++)
+            {
+                strcat(r,(yyvsp[-1].paramets)->parameters[i]->type);
+            }
+            if(strcmp(r,function_table[s].type_parameters))
+            {
+                yyerror("Error! Incorrect parameters!");
+                return -1;
+            }
+            (yyval.expr)->value = (char*) malloc (60);
+            strcpy((yyval.expr)->value,"0");
+            (yyval.expr)->type = (char*) malloc(60);
+            strcpy((yyval.expr)->type,function_table[s].var_type);
+            (yyval.expr)->bool_value = true;
+         }
+#line 1694 "language.tab.c"
+    break;
+
+  case 67: /* expression: ID_VAL '(' ')'  */
+#line 292 "language.y"
+         {
+            int s = searchFunction(strdup((yyvsp[-2].string_val)));
+            if(s == -1 )
+            {
+                yyerror("Error! Variable uninitialised!");
+                return -1;
+            }
+            if(strcmp(function_table[s].type_parameters,"No parameters"))
+            {
+                yyerror("Error! Incorrect parameters!");
+                return -1;
+            }
+            (yyval.expr)->value = (char*) malloc (60);
+            strcpy((yyval.expr)->value,"0");
+            (yyval.expr)->type = (char*) malloc(60);
+            strcpy((yyval.expr)->type,function_table[s].var_type);
+            (yyval.expr)->bool_value = true;
+         }
+#line 1717 "language.tab.c"
+    break;
+
+  case 68: /* expression: ID_VAL '.' ID_VAL  */
+#line 311 "language.y"
+         {
+            char* r = (char*)malloc(100);
+            strcpy(r,(yyvsp[-2].string_val));
+            strcat(r,".");
+            strcat(r,(yyvsp[0].string_val));
+            int s = search(r);
+            if(s == -1 || symbol_table[s].value == NULL)
+            {
+                yyerror("Error! Value uninitialised!");
+                return -1;
+            }
+            (yyval.expr)->value = (char*) malloc (60);
+            strcpy((yyval.expr)->value,symbol_table[s].value);
+            (yyval.expr)->type = (char*) malloc(60);
+            strcpy((yyval.expr)->type,function_table[s].var_type);
+            if(strcmp(symbol_table[s].value,"0"))
+                (yyval.expr)->bool_value = false;
+            else
+                (yyval.expr)->bool_value = true;
+         }
+#line 1742 "language.tab.c"
+    break;
+
+  case 69: /* expression: EVAL '(' expression ')'  */
+#line 332 "language.y"
+         {
+            (yyval.expr) = (yyvsp[-1].expr);
+         }
+#line 1750 "language.tab.c"
+    break;
+
+  case 70: /* expression: TYPEOF '(' expression ')'  */
+#line 336 "language.y"
+         {
+            (yyval.expr) = (yyvsp[-1].expr);
+         }
+#line 1758 "language.tab.c"
+    break;
+
+  case 71: /* assignement: ID_VAL ASSIGN expression  */
+#line 340 "language.y"
+                                      {int s = search(strdup((yyvsp[-2].string_val)));  if(s == -1) //x = 5
     {
         yyerror("Error! Undeclared variable!");
         return -1;
     }
     else
     {
-        int v = search(strdup((yyvsp[0].string_val))); if(strcmp(symbol_table[s].var_type,symbol_table[v].var_type) == 0)
+        if(strcmp(symbol_table[s].var_type,(yyvsp[0].expr)->type) == 0)
         {
-            modifyVarValue(s,symbol_table[v].value);
+            modifyVarValue(s,(yyvsp[0].expr)->value);
         }
         else
         {
@@ -1160,146 +1777,406 @@ yyreduce:
         }
     }
     }
-#line 1164 "language.tab.c"
+#line 1781 "language.tab.c"
     break;
 
-  case 8: /* instr: type ID_VAL ASSIGN ID_VAL  */
-#line 68 "language.y"
-                               {int s = search(strdup((yyvsp[0].string_val))); if(s == -1) ///int x = y
+  case 72: /* assignement: ID_VAL '[' value ']' ASSIGN expression  */
+#line 359 "language.y"
     {
-        yyerror("Error! Undeclared variable!");
-        return -1;
-    }
-        if(symbol_table[s].value == NULL)
-        {
-            yyerror("Error! Value uninitialised!");
-            return -1;
-        }
-        if(strcmp(lastType,symbol_table[s].var_type)!=0)
-        {
-            yyerror("Error! Wrong conversion type.");
-            return -1;
-        }
-        addSymbol("Variable",strdup((yyvsp[-2].string_val)),symbol_table[s].value,strdup((yyvsp[-3].string_val)));
-    }
-#line 1186 "language.tab.c"
-    break;
-
-  case 9: /* instr: ID_VAL ASSIGN ID_VAL  */
-#line 85 "language.y"
-                          {
-        int s = search(strdup((yyvsp[0].string_val))); if(s == -1) // x = y
-    {
-        yyerror("Error! Undeclared variable!");
-        return -1;
-    }
-    else
-    {
-        int v = search(strdup((yyvsp[-2].string_val))); if(v == -1)
-        {
-            yyerror("Error! Undeclared variable!");
-            return -1;
-        }
-        if(strcmp(symbol_table[s].var_type,symbol_table[v].var_type)!=0)
-        {
-            yyerror("Error! Wrong conversion type.");
-            return -1;
-        }
-        if(symbol_table[s].value == NULL)
-        {
-            yyerror("Error! Value uninitialised!");
-            return -1;
-        }
-        modifyVarValue(v,symbol_table[s].value);
-    }
-    }
-#line 1217 "language.tab.c"
-    break;
-
-  case 10: /* instr: type ID_VAL '[' value ']'  */
-#line 112 "language.y"
-    {
-        addSymbol("Vector", strdup((yyvsp[-3].string_val)),strdup((yyvsp[-1].string_val)),strdup((yyvsp[-4].string_val)));
-    }
-#line 1225 "language.tab.c"
-    break;
-
-  case 11: /* instr: ID_VAL '[' value ']' ASSIGN value  */
-#line 116 "language.y"
-    {
-        int s = ExistsVectorVarName(strdup((yyvsp[-5].string_val)),strdup((yyvsp[-3].string_val)));
+        int s = search(strdup((yyvsp[-5].string_val)));
         if(s == -1)
         {
             yyerror("Error! Uninitialised value!");
             return -1;
         }
-        int v = search(strdup((yyvsp[0].string_val)));
-        if(strcmp(symbol_table[v].var_type,symbol_table[s].var_type))
+        if(strcmp((yyvsp[0].expr)->type,symbol_table[s].var_type))
         {
             yyerror("Error! Wrong conversion type!");
             return -1;
         }
-        modifyVarValue(s,symbol_table[v].value);
+
+        int i = search(strdup((yyvsp[-3].string_val)));
+        if(strcmp(symbol_table[i].var_type,"int") || symbol_table[i].value[0] == '-')
+        {
+            yyerror("Error! Unavailable index!");
+            return -1;
+        }
+        
+        int x = search(getVectorIndexName(strdup((yyvsp[-5].string_val)),strdup((yyvsp[-3].string_val))));
+        if(x == -1)
+        {
+            yyerror("Error! Unavailable index!");
+            return -1;
+        }
+        modifyVarValue(x,(yyvsp[0].expr)->value);
     }
-#line 1245 "language.tab.c"
+#line 1814 "language.tab.c"
     break;
 
-  case 12: /* type: INT_TYPE  */
-#line 133 "language.y"
+  case 73: /* assignement: ID_VAL '[' ID_VAL ']' ASSIGN expression  */
+#line 387 "language.y"
+                                            {
+        int s = search(strdup((yyvsp[-5].string_val)));
+        if(s == -1)
+        {
+            yyerror("Error! Uninitialised value!");
+            return -1;
+        }
+        int v = search(strdup((yyvsp[-3].string_val)));
+        if(v == -1 || symbol_table[v].value == NULL)
+        {
+            yyerror("Error! Uninitialised value!");
+            return -1;
+        }
+        if(strcmp(symbol_table[v].var_type,"int") || symbol_table[v].value[0] == '-' )
+        {
+            yyerror("Error! Unavailable index!");
+            return -1;
+        }
+        if(strcmp(symbol_table[v].type,"Variable") && strcmp(symbol_table[v].type,"Constant"))
+        {
+            yyerror("Error! Index type is not correct!");
+            return -1;
+        }
+        int a = search(makeVectorName(strdup((yyvsp[-5].string_val)),atoi(symbol_table[v].value)));
+        if(a == -1)
+        {
+            yyerror("Error! Unavailable index!");
+            return -1;
+        }
+        if(strcmp(symbol_table[s].var_type,(yyvsp[0].expr)->type))
+        {
+            yyerror("Error! Wrong conversion type.");
+            return -1;
+        }
+        modifyVarValue(a,(yyvsp[0].expr)->value);
+    }
+#line 1855 "language.tab.c"
+    break;
+
+  case 74: /* assignement: ID_VAL '(' call_params ')'  */
+#line 424 "language.y"
+    {
+        int s = searchFunction(strdup((yyvsp[-3].string_val)));
+        if(s == -1)
+        {
+            yyerror("Error! Function non-existant!");
+            return -1;
+        }
+        char *r = (char*) malloc(100);
+        for(int i = 0; i < (yyvsp[-1].paramets)->cnt; i++)
+        {
+            strcat(r,(yyvsp[-1].paramets)->parameters[i]->type);
+        }
+        if(strcmp(r,function_table[s].type_parameters))
+        {
+            yyerror("Error! Incorrect parameters!");
+            return -1;
+        }
+    }
+#line 1878 "language.tab.c"
+    break;
+
+  case 75: /* assignement: ID_VAL '(' ')'  */
+#line 443 "language.y"
+    {
+        int s = searchFunction(strdup((yyvsp[-2].string_val)));
+        if(s == -1)
+        {
+            yyerror("Error! Function non-existant!");
+            return -1;
+        }
+        if(strcmp(function_table[s].type_parameters,"No parameters"))
+        {
+            yyerror("Error! Incorrect parameters!");
+            return -1;
+        }
+    }
+#line 1896 "language.tab.c"
+    break;
+
+  case 76: /* assignement: ID_VAL '.' ID_VAL ASSIGN expression  */
+#line 457 "language.y"
+    {
+        char* r = (char*)malloc(100);
+        strcpy(r,(yyvsp[-4].string_val));
+        strcat(r,".");
+        strcat(r,(yyvsp[-2].string_val));
+        int s = search(r);
+        if(s == -1 || symbol_table[s].value == NULL)
+        {
+            yyerror("Error! Value uninitialised!");
+            return -1;
+        }
+        if(strcmp(symbol_table[s].var_type,(yyvsp[0].expr)->type))
+        {
+            yyerror("Error! Wrong conversion type!");
+            return -1;
+        }
+        modifyVarValue(s,(yyvsp[0].expr)->value);
+    }
+#line 1919 "language.tab.c"
+    break;
+
+  case 77: /* call_params: call_params ',' call_param  */
+#line 478 "language.y"
+    {
+        (yyvsp[-2].paramets)->parameters[(yyvsp[-2].paramets)->cnt] = new par;
+        (yyvsp[-2].paramets)->parameters[(yyvsp[-2].paramets)->cnt]->type = (char*)malloc(20);
+        (yyvsp[-2].paramets)->parameters[(yyvsp[-2].paramets)->cnt]->value = (char*)malloc(60);
+        strcpy((yyvsp[-2].paramets)->parameters[(yyvsp[-2].paramets)->cnt]->type,(yyvsp[0].paramet)->type);
+        strcpy((yyvsp[-2].paramets)->parameters[(yyvsp[-2].paramets)->cnt]->value,(yyvsp[0].paramet)->value);
+        (yyvsp[-2].paramets)->cnt++;
+        (yyval.paramets) = (yyvsp[-2].paramets);
+    }
+#line 1933 "language.tab.c"
+    break;
+
+  case 78: /* call_params: call_param  */
+#line 487 "language.y"
+                {
+        (yyval.paramets) = new call_parameters;
+        (yyval.paramets)->cnt = 0;
+        (yyval.paramets)->parameters[0] = new par;
+        (yyval.paramets)->parameters[0]->type = (char*)malloc(20);
+        (yyval.paramets)->parameters[0]->value = (char*)malloc(60);
+        strcpy((yyval.paramets)->parameters[(yyval.paramets)->cnt]->type,(yyvsp[0].paramet)->type);
+        strcpy((yyval.paramets)->parameters[(yyval.paramets)->cnt]->value,(yyvsp[0].paramet)->value);
+        (yyval.paramets)->cnt++;
+    }
+#line 1948 "language.tab.c"
+    break;
+
+  case 79: /* call_param: expression  */
+#line 500 "language.y"
+    {
+        (yyval.paramet) = new par;
+        (yyval.paramet)->type = (char*)malloc(20);
+        strcpy((yyval.paramet)->type,(yyvsp[0].expr)->type);
+        (yyval.paramet)->value = (char*)malloc(60);
+        strcpy((yyval.paramet)->value,(yyvsp[0].expr)->value);
+    }
+#line 1960 "language.tab.c"
+    break;
+
+  case 80: /* declaration: type ID_VAL  */
+#line 508 "language.y"
+                        { addSymbol("Variable", strdup((yyvsp[0].string_val)), NULL, strdup((yyvsp[-1].string_val))); }
+#line 1966 "language.tab.c"
+    break;
+
+  case 81: /* declaration: type ID_VAL ASSIGN expression  */
+#line 509 "language.y"
+                                   { //int x = 5
+        if(strcmp((yyvsp[0].expr)->type, lastType)!=0)
+        {
+            yyerror("Error! Wrong conversion type.");
+            return -1;
+        }
+        addSymbol("Variable", strdup((yyvsp[-2].string_val)), (yyvsp[0].expr)->value, strdup((yyvsp[-3].string_val)));
+    }
+#line 1979 "language.tab.c"
+    break;
+
+  case 82: /* declaration: type ID_VAL '[' value ']'  */
+#line 518 "language.y"
+    {
+        int i = search(strdup((yyvsp[-1].string_val)));
+        if(strcmp(symbol_table[i].var_type,"int") || symbol_table[i].value[0] == '-')
+        {
+            yyerror("Error! Unavailable index!");
+            return -1;
+        }
+        int v = search(strdup((yyvsp[-3].string_val)));
+        if(v!=-1)
+        {
+            yyerror("Error! Redeclaration of variable!");
+            return -1;
+        }
+        addSymbol("Vector", strdup((yyvsp[-3].string_val)),strdup((yyvsp[-1].string_val)),strdup((yyvsp[-4].string_val)));
+    }
+#line 1999 "language.tab.c"
+    break;
+
+  case 83: /* declaration: type ID_VAL '[' value ']' ASSIGN '{' vector '}'  */
+#line 534 "language.y"
+    {
+        int s = search(strdup((yyvsp[-7].string_val)));
+        if(s != -1)
+        {
+            yyerror("Error! Redeclaration of variable!");
+            return -1;
+        }
+        int v = search(strdup((yyvsp[-5].string_val)));
+        if(strcmp(symbol_table[v].var_type,"int") || symbol_table[v].value[0] == '-')
+        {
+            yyerror("Error! Unavailable index!");
+            return -1;
+        }
+        addSymbol("Vector",strdup((yyvsp[-7].string_val)),strdup((yyvsp[-5].string_val)),strdup((yyvsp[-8].string_val)));
+        if((yyvsp[-1].vec_type)->nr_elem > atoi((yyvsp[-5].string_val)))
+        {
+            yyerror("Error! Too many elements in the vector.");
+            return -1;
+        }
+        for(int i = 0; i < (yyvsp[-1].vec_type)->nr_elem; i++)
+        {
+            s = search(makeVectorName(strdup((yyvsp[-7].string_val)),i));
+            int e = search((yyvsp[-1].vec_type)->value[i]);
+            if(strcmp(lastType,symbol_table[e].var_type))
+            {
+                yyerror("Error! An element in the vector is of the wrong type!");
+                return -1;
+            }
+            modifyVarValue(s,symbol_table[e].value);
+        }
+        if(strcmp(lastType,"int")==0)
+        {
+            for(int i = (yyvsp[-1].vec_type)->nr_elem; i < atoi(strdup((yyvsp[-5].string_val))); i++)
+                {
+                    s = search(makeVectorName(strdup((yyvsp[-7].string_val)),i));
+                    char zero[] = "0";
+                    modifyVarValue(s,zero);
+                }
+        }
+        else if(strcmp(lastType,"float") == 0)
+        {
+            for(int i = (yyvsp[-1].vec_type)->nr_elem; i < atoi(strdup((yyvsp[-5].string_val))); i++)
+                {
+                    s = search(makeVectorName(strdup((yyvsp[-7].string_val)),i));
+                    char zero[] = "0.0";
+                    modifyVarValue(s,zero);
+                }
+        }
+    }
+#line 2053 "language.tab.c"
+    break;
+
+  case 84: /* declaration: type ID_VAL '[' ID_VAL ']'  */
+#line 584 "language.y"
+                                {
+        int i = search(strdup((yyvsp[-1].string_val)));
+        if(i == -1)
+        {
+            yyerror("Error! Uninitialised value!");
+            return -1;
+        }  
+        int v = search(strdup((yyvsp[-3].string_val)));
+        if(v!=-1)
+        {
+            yyerror("Error! Redeclaration of variable!");
+            return -1;
+        } 
+        if(strcmp(symbol_table[i].type,"Variable") && strcmp(symbol_table[i].type,"Constant"))
+        {
+            yyerror("Error! Index type is not correct!");
+            return -1;
+        }
+        if(strcmp(symbol_table[i].var_type,"int") || symbol_table[i].value[0] == '-')
+        {
+            yyerror("Error! Unavailable index!");
+            return -1;
+        }
+        addSymbol("Vector", strdup((yyvsp[-3].string_val)),symbol_table[i].value,strdup((yyvsp[-4].string_val)));
+    }
+#line 2083 "language.tab.c"
+    break;
+
+  case 85: /* vector: vector ',' value  */
+#line 611 "language.y"
+                         { strcpy((yyvsp[-2].vec_type)->value[(yyvsp[-2].vec_type)->nr_elem],(yyvsp[0].string_val)); (yyvsp[-2].vec_type)->nr_elem++; (yyval.vec_type) = (yyvsp[-2].vec_type); }
+#line 2089 "language.tab.c"
+    break;
+
+  case 86: /* vector: value  */
+#line 612 "language.y"
+            {
+    (yyval.vec_type) = new vec;
+    for(int i = 0; i < 100; i++)
+        (yyval.vec_type)->value[i] = (char*)malloc(10);     
+    (yyval.vec_type)->nr_elem = 0; strcpy((yyval.vec_type)->value[(yyval.vec_type)->nr_elem],(yyvsp[0].string_val)); (yyval.vec_type)->nr_elem++;
+    }
+#line 2100 "language.tab.c"
+    break;
+
+  case 87: /* type: INT_TYPE  */
+#line 620 "language.y"
               {updateLastType(strdup((yyvsp[0].string_val))); (yyval.string_val) = (yyvsp[0].string_val);}
-#line 1251 "language.tab.c"
+#line 2106 "language.tab.c"
     break;
 
-  case 13: /* type: FLOAT_TYPE  */
-#line 134 "language.y"
+  case 88: /* type: FLOAT_TYPE  */
+#line 621 "language.y"
                 {updateLastType(strdup((yyvsp[0].string_val))); (yyval.string_val) = (yyvsp[0].string_val);}
-#line 1257 "language.tab.c"
+#line 2112 "language.tab.c"
     break;
 
-  case 14: /* type: BOOL_TYPE  */
-#line 135 "language.y"
+  case 89: /* type: BOOL_TYPE  */
+#line 622 "language.y"
                {updateLastType(strdup((yyvsp[0].string_val))); (yyval.string_val) = (yyvsp[0].string_val);}
-#line 1263 "language.tab.c"
+#line 2118 "language.tab.c"
     break;
 
-  case 15: /* type: CHAR_TYPE  */
-#line 136 "language.y"
+  case 90: /* type: CHAR_TYPE  */
+#line 623 "language.y"
                {updateLastType(strdup((yyvsp[0].string_val))); (yyval.string_val) = (yyvsp[0].string_val);}
-#line 1269 "language.tab.c"
+#line 2124 "language.tab.c"
     break;
 
-  case 16: /* type: STRING_TYPE  */
-#line 137 "language.y"
+  case 91: /* type: STRING_TYPE  */
+#line 624 "language.y"
                  {updateLastType(strdup((yyvsp[0].string_val))); (yyval.string_val) = (yyvsp[0].string_val);}
-#line 1275 "language.tab.c"
+#line 2130 "language.tab.c"
     break;
 
-  case 17: /* value: INT_VAL  */
-#line 140 "language.y"
-              {addSymbol("Constant", strdup((yyvsp[0].string_val)), strdup((yyvsp[0].string_val)), "int"); (yyval.string_val) = (yyvsp[0].string_val);}
-#line 1281 "language.tab.c"
+  case 92: /* type: VOID_TYPE  */
+#line 625 "language.y"
+               {updateLastType(strdup((yyvsp[0].string_val))); (yyval.string_val) = (yyvsp[0].string_val);}
+#line 2136 "language.tab.c"
     break;
 
-  case 18: /* value: FLOAT_VAL  */
-#line 141 "language.y"
-               {addSymbol("Constant", strdup((yyvsp[0].string_val)), strdup((yyvsp[0].string_val)), "float"); (yyval.string_val) = (yyvsp[0].string_val);}
-#line 1287 "language.tab.c"
+  case 93: /* value: INT_VAL  */
+#line 628 "language.y"
+              {char var_type[] = "int"; addSymbol("Constant", strdup((yyvsp[0].string_val)), strdup((yyvsp[0].string_val)), var_type); (yyval.string_val) = (yyvsp[0].string_val);}
+#line 2142 "language.tab.c"
     break;
 
-  case 19: /* value: CHAR_VAL  */
-#line 142 "language.y"
-              {addSymbol("Constant", strdup((yyvsp[0].string_val)), strdup((yyvsp[0].string_val)), "char"); (yyval.string_val) = (yyvsp[0].string_val);}
-#line 1293 "language.tab.c"
+  case 94: /* value: FLOAT_VAL  */
+#line 629 "language.y"
+               {char var_type[] = "float"; addSymbol("Constant", strdup((yyvsp[0].string_val)), strdup((yyvsp[0].string_val)), var_type); (yyval.string_val) = (yyvsp[0].string_val);}
+#line 2148 "language.tab.c"
     break;
 
-  case 20: /* value: STRING_VAL  */
-#line 143 "language.y"
-                {addSymbol("Constant", strdup((yyvsp[0].string_val)), strdup((yyvsp[0].string_val)), "string"); (yyval.string_val) = (yyvsp[0].string_val);}
-#line 1299 "language.tab.c"
+  case 95: /* value: CHAR_VAL  */
+#line 630 "language.y"
+              {char var_type[] = "char"; addSymbol("Constant", strdup((yyvsp[0].string_val)), strdup((yyvsp[0].string_val)), var_type); (yyval.string_val) = (yyvsp[0].string_val);}
+#line 2154 "language.tab.c"
+    break;
+
+  case 96: /* value: STRING_VAL  */
+#line 631 "language.y"
+                {char var_type[] = "string"; addSymbol("Constant", strdup((yyvsp[0].string_val)), strdup((yyvsp[0].string_val)), var_type); (yyval.string_val) = (yyvsp[0].string_val);}
+#line 2160 "language.tab.c"
+    break;
+
+  case 97: /* value: BOOL_VAL  */
+#line 632 "language.y"
+              {char var_type[] = "bool"; addSymbol("Constant", strdup((yyvsp[0].string_val)), strdup((yyvsp[0].string_val)), var_type); (yyval.string_val) = (yyvsp[0].string_val);}
+#line 2166 "language.tab.c"
+    break;
+
+  case 98: /* return: RETURN expression  */
+#line 636 "language.y"
+    {
+        (yyval.expr)->type = (char*)malloc(20);
+        (yyval.expr)->value = (char*)malloc(60);
+        (yyval.expr) = (yyvsp[0].expr);
+    }
+#line 2176 "language.tab.c"
     break;
 
 
-#line 1303 "language.tab.c"
+#line 2180 "language.tab.c"
 
       default: break;
     }
@@ -1492,10 +2369,11 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 146 "language.y"
+#line 642 "language.y"
 
 int yyerror(const char* s){
-    printf("Line %d: Error! %s\n",line_nr+1, s);
+    ok = false;
+    printf("Line %d: %s\n",line_nr+1, s);
     return -1;
 }
 
@@ -1514,8 +2392,9 @@ int main(int argc, char* argv[]) {
     yyin = file; // Set the input file for Flex
 
     yyparse();
-    printSymbols();
-
+    printSymbolsToFile();
+    if(ok)
+        cout<<"Compilation was successful!\n";
     fclose(file);
 
     return 0;

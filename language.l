@@ -16,6 +16,8 @@ ID [a-zA-Z][a-zA-Z0-9_]*
 "bool" {yylval.string_val = strdup(yytext); return BOOL_TYPE; }
 "void" {yylval.string_val = strdup(yytext); return VOID_TYPE; }
 "class" {yylval.string_val = strdup(yytext); return CLASS_TYPE; }
+"true" {yylval.string_val = strdup(yytext); return BOOL_VAL;}
+"false" {yylval.string_val = strdup(yytext); return BOOL_VAL;}
 
 "for" {yylval.string_val = strdup(yytext); return FOR_INST; }
 "while" {yylval.string_val = strdup(yytext); return WHILE_INST; }
@@ -56,7 +58,7 @@ ID [a-zA-Z][a-zA-Z0-9_]*
 {ID} {yylval.string_val = strdup(yytext); return ID_VAL;}
 [-]?{NUMBER} {yylval.string_val = strdup(yytext); return INT_VAL;}
 [-]?{NUMBER}\.{FLOAT_NR} {yylval.string_val = strdup(yytext); return FLOAT_VAL;}
-"true" | "false" {yylval.string_val = strdup(yytext); return BOOL_VAL;}
+
 [ ] ;
 [ \t] ;
 [ \n] {line_nr++;}

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstring>
-
+#include <fstream>
 using namespace std;
 
 
@@ -171,11 +171,6 @@ void addSymbol(const char *type, char *name, char *value, char *var_type) // add
     }
 }
 
-void getLastType(char *type)
-{
-    strcpy(lastDeclaredType, type);
-}
-
 void updateLastScope(char *scope)
 {
     strcpy(lastScope, scope);
@@ -224,16 +219,6 @@ void addClass(char *class_name) // add a class
             nr_classes++;                                                // increment the number of classes
         }
     }
-    for (int i = 0; i < nr_funct; i++) // search in the function table
-    {
-        if (!strcmp(function_table[i].function_scope, class_name)) // if the scope is the class name
-        {
-            class_table[nr_classes].class_name = strdup(class_name); //  copy the class name
-            class_table[nr_classes].type = strdup("Function");       //  copy the type
-            class_table[nr_classes].index = i;                       //  copy the index
-            nr_classes++;                                            // increment the number of classes
-        }
-    }
 }
 void addVariableClass(char *class_name, char *var_name) // add a variable in a class
 {   
@@ -249,81 +234,74 @@ void addVariableClass(char *class_name, char *var_name) // add a variable in a c
         
         if (!strcmp(class_name, class_table[i].class_name)) // if the class is found
         {
-            if (!strcmp(class_table[i].type, "Function")) // if the type is function
-            {
-                
-                int index = class_table[i].index; // save the index
-                char *name = strdup(var_name);    // copy the name
-                strcat(name, ".");
-                strcat(name, function_table[index].name);
-                function_table[nr_funct].name = strdup(name);                                             // copy the name
-                function_table[nr_funct].parameters = strdup(function_table[index].parameters);           // copy the parameters
-                function_table[nr_funct].type_parameters = strdup(function_table[index].type_parameters); // copy the type of the parameters
-                function_table[nr_funct].var_type = strdup(function_table[index].var_type);               // copy the type of the function
-                function_table[nr_funct].function_scope = strdup(lastFunctionScope);                      // copy the scope of the function
-                nr_funct++;                                                                               // increment the number of functions
-            }
-            else // if the type is variable
-            {
-                
-                int index = class_table[i].index; // save the index
-                char *name = strdup(var_name);    // copy the name
-                strcat(name, ".");
-                strcat(name, symbol_table[index].name);
-                symbol_table[nr_symbols].name = strdup(name);                             // copy the name
-                symbol_table[nr_symbols].var_type = strdup(symbol_table[index].var_type); // copy the variable type
-                symbol_table[nr_symbols].type = strdup(symbol_table[index].type);         // copy the type
-                symbol_table[nr_symbols].value = (char*)malloc(60);
-                strcpy(symbol_table[nr_symbols].value, "0");                              // copy the value
-                symbol_table[nr_symbols].scope = strdup(lastScope);                       // copy the scope
-                nr_symbols++;                                                             // increment the number of symbols
-            }
+
+            int index = class_table[i].index; // save the index
+            char *name = strdup(var_name);    // copy the name
+            strcat(name, ".");
+            strcat(name, symbol_table[index].name);
+            symbol_table[nr_symbols].name = strdup(name);                             // copy the name
+            symbol_table[nr_symbols].var_type = strdup(symbol_table[index].var_type); // copy the variable type
+            symbol_table[nr_symbols].type = strdup(symbol_table[index].type);         // copy the type
+            symbol_table[nr_symbols].value = (char*)malloc(60);
+            strcpy(symbol_table[nr_symbols].value, "0");                              // copy the value
+            symbol_table[nr_symbols].scope = strdup(lastScope);                       // copy the scope
+            nr_symbols++;                                                             // increment the number of symbols
         }
     }
 }
-bool isCustomType(char *type)
-{
-    const char *basicTypes[] = {"int", "char", "float", "string", "bool"}; // array of basic types
-    const int numBasicTypes = sizeof(basicTypes) / sizeof(basicTypes[0]);  // number of basic types
-    for (int i = 0; i < numBasicTypes; ++i)
-    { // search in the array
-        if (strcmp(type, basicTypes[i]) == 0)
-        {                 // if the type is found
-            return false; // Return false if the type is a basic type
+
+
+void printSymbolsToFile() {
+    ofstream outFile("symbols.txt");
+    if (outFile.is_open()) {
+        outFile << "FUNCTIONS!\n";
+        outFile << "Type  Name  Type_Parameters  Parameters  Scope \n";
+        for (int i = 0; i < nr_funct; i++) {
+            string functionInfo = ""; // Creează un șir pentru informațiile despre funcție
+            // Concatenează informațiile despre funcție într-un șir
+            functionInfo += function_table[i].var_type;
+            functionInfo += " ";
+            functionInfo += function_table[i].name;
+            functionInfo += " ";
+            functionInfo += function_table[i].type_parameters;
+            functionInfo += " ";
+            functionInfo += function_table[i].parameters;
+            functionInfo += " ";
+            functionInfo += function_table[i].function_scope;
+            functionInfo += "\n";
+            outFile << functionInfo; // Scrie informațiile în fișierul deschis
         }
+        
+        outFile << "SYMBOLS!\n";
+        outFile << "TypeOfSymbol  VariableType  Name  Value  Scope \n";
+        for (int i = 0; i < nr_symbols; i++) {
+            
+            
+            string symbolInfo = ""; // Creează un șir pentru informațiile despre simbol
+
+            // Concatenează informațiile despre simbol într-un șir
+            symbolInfo += symbol_table[i].type;
+            symbolInfo += " ";
+            symbolInfo += symbol_table[i].var_type;
+            symbolInfo += " ";
+            symbolInfo += symbol_table[i].name;
+            symbolInfo += " ";
+            
+            if (symbol_table[i].value != nullptr) {
+                symbolInfo += symbol_table[i].value;
+            }
+
+            symbolInfo += " ";
+            symbolInfo += symbol_table[i].scope;
+            symbolInfo += "\n";
+
+            outFile << symbolInfo; // Scrie informațiile în fișierul deschis
+        }
+
+        outFile.close(); // Închide fișierul
+    } else {
+        cerr << "Unable to open file: symbols.txt" << endl; // Afisează un mesaj de eroare dacă fișierul nu poate fi deschis
     }
-
-    return true; // return true if the type is not a basic type
-}
-
-void printOneSymbol(symbol s) // print a symbol
-{
-    cout << s.type << " " << s.var_type << " " << s.name << " "; // print the symbol
-    if (s.value != NULL)
-        cout << s.value;
-    cout << " " << s.scope;
-    cout << '\n';
-}
-
-void printSymbols() // print the symbols
-{
-    cout << "SYMBOLS!\n";
-    for (int i = 0; i < nr_symbols; i++) // search in the symbols
-    {
-        printOneSymbol(symbol_table[i]);
-    } // print a symbol
-}
-
-void printOneFunc(function_symbol f)
-{  
-    cout << f.var_type << " " << f.name << " " << f.type_parameters << " " << f.parameters << " " << f.function_scope << '\n';
-}
-
-void printFunctions()
-{
-    cout << "FUNCTIONS!\n";
-    for (int i = 0; i < nr_funct; i++)
-        printOneFunc(function_table[i]);
 }
 
 char* itoa(int nr)

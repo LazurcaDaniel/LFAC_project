@@ -1,49 +1,54 @@
-
-int GLOBAL_0 = 0
+char var
+char in_var = 'D'
 
 class ClasaExemplu
 {
-    int a = 7
-    float b = 0.4
-    fn string functieClasa ()
+    int primul
+    float al_doilea
+    fn int suma(int x, int y)
     {
-        return "Hello World"
+        return x + y
     }
-}
+    fn void afiseazaNume(string nume)
+    {
+        write nume
+    }
+}A,B
 
-fn int sum(int x, int y)
+fn float medie(float x, float y)
 {
-    int suma = 0
-    for( int i = 1 ; i < x; i++ )
-    {
-        suma = suma + i
-    }
-
-    while(suma < 100)
-    {
-        suma = suma * 2
-    }
-
-    do
-    {
-        suma = suma / 4
-    }while(suma > 0)
-
-    if( suma == 0 )
-    {
-        suma = suma + 5
-    }
-    else
-    {
-        suma = suma - 5
-    }
-    return suma
+    float s = x + y
+    return s / 2.0
 }
 
 main
 {
-    int a
-    a = ((2 - 4 + (-2 * 4))--) % 2 
-    string nume = "Daniel"
-    char initiala_tata = 'G'
+    int x
+    read x
+    bool z = true
+    if(z == false)
+    {
+        string b = "DA"
+    }
+    else 
+    {
+        string b = "NU"
+    }
+    float unu = 1.0
+    while(unu < 5.6)
+    {
+        unu = unu + 1.4
+    }
+
+    do
+    {
+        unu = unu / 3.0
+    }while(unu > 0.0)
+    int sum = 0
+    for(int i = 0;  i < 10; i++ )
+    {
+        sum = sum + i
+    }
+    
+    write sum
 }

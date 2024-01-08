@@ -1,0 +1,42 @@
+FUNCTIONS!
+Type  Name  Type_Parameters  Parameters  Scope 
+int suma intint int x,int y suma
+void afiseazaNume string string nume afiseazaNume
+float medie floatfloat float x,float y medie
+SYMBOLS!
+TypeOfSymbol  VariableType  Name  Value  Scope 
+Variable char var  Global
+Constant char 'D' 'D' Global
+Variable char in_var 'D' Global
+Variable int primul  ClasaExemplu
+Variable float al_doilea  ClasaExemplu
+Variable int x 0 suma
+Variable int y 0 suma
+Variable string nume 0 afiseazaNume
+Variable Class A  Global
+Variable int A.primul 0 Global
+Variable float A.al_doilea 0 Global
+Variable Class B  Global
+Variable int B.primul 0 Global
+Variable float B.al_doilea 0 Global
+Variable float x 0 medie
+Variable float y 0 medie
+Variable float s 0 medie
+Constant float 2.0 2.0 medie
+Variable int x 0 main
+Constant bool true true main
+Variable bool z true main
+Constant bool false false main
+Constant string "DA" "DA" main
+Variable string b "DA" main
+Constant string "NU" "NU" main
+Constant float 1.0 1.0 main
+Variable float unu 0 main
+Constant float 5.6 5.6 main
+Constant float 1.4 1.4 main
+Constant float 3.0 3.0 main
+Constant float 0.0 0.0 main
+Constant int 0 0 main
+Variable int sum 0 main
+Variable int i 0 main
+Constant int 10 10 main

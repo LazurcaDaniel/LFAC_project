@@ -7,6 +7,8 @@ extern FILE* yyin;
 extern int line_nr;
 using namespace std;
 
+bool ok = true;
+
 struct vec{
     int nr_elem = 0;
     char* value[10];
@@ -50,7 +52,7 @@ struct call_parameters
 %token <string_val> INT_VAL FLOAT_VAL CHAR_VAL STRING_VAL BOOL_VAL
 %token <string_val> READ WRITE
 %token <string_val> FUNC MAIN_PRG EVAL TYPEOF RETURN
-%token <string_val> PLUS MINUS MULT DIV MOD ASSIGN INC DEC EQ NEQ LT LE GT GE AND OR UMINUS
+%token <string_val> PLUS MINUS MULT DIV MOD ASSIGN INC DEC EQ NEQ LT LE GT GE AND OR
 
 %type<string_val> type
 %type<string_val> value
@@ -107,7 +109,7 @@ struct call_parameters
                   |
                   ;
 
-    class_var: ID_VAL {getLastType(lastClassName); char c[] ="Class"; addSymbol("Variable", strdup($1), NULL, c); addVariableClass(lastClassName, strdup($1)); }
+    class_var: ID_VAL {updateLastType(lastClassName); char c[] ="Class"; addSymbol("Variable", strdup($1), NULL, c); addVariableClass(lastClassName, strdup($1)); }
 
  functions: function functions
     |
@@ -148,10 +150,24 @@ struct call_parameters
  instr:declaration
     |assignement
     |control
-    |EVAL '(' condition ')'
-    |TYPEOF '(' condition')' 
+    |write
+    |read
     ;   
 
+write: WRITE expression
+    ;
+read: READ ID_VAL
+    {
+        int s = search(strdup($2));
+        if(s == -1)
+        {
+            yyerror("Error! Variable uninitialised!");
+            return -1;
+        }
+        char z[] = "0";
+        modifyVarValue(s,z);
+    }
+    ;
     
      
  control:if
@@ -161,7 +177,7 @@ struct call_parameters
     ;
  for: FOR_INST '(' declaration ';' condition ';' expression ')' '{' body '}'
     {
-        cout<<"FOR!"<<'\n'; // Execute the body of the for statement
+        cout<<"FOR"<<'\n'; // Execute the body of the for statement
     }
     ;    
  while: WHILE_INST '(' condition ')' '{' body '}'
@@ -311,6 +327,14 @@ do: DO_INST '{' body '}' WHILE_INST '(' condition ')'
                 $$->bool_value = false;
             else
                 $$->bool_value = true;
+         }
+         |EVAL '(' expression ')'
+         {
+            $$ = $3;
+         }
+         |TYPEOF '(' expression ')'
+         {
+            $$ = $3;
          }
         ;
  assignement:ID_VAL ASSIGN expression {int s = search(strdup($1));  if(s == -1) //x = 5
@@ -617,6 +641,7 @@ return: RETURN expression
     ;    
 %%
 int yyerror(const char* s){
+    ok = false;
     printf("Line %d: %s\n",line_nr+1, s);
     return -1;
 }
@@ -636,9 +661,9 @@ int main(int argc, char* argv[]) {
     yyin = file; // Set the input file for Flex
 
     yyparse();
-    printFunctions();
-    printSymbols();
-
+    printSymbolsToFile();
+    if(ok)
+        cout<<"Compilation was successful!\n";
     fclose(file);
 
     return 0;
